@@ -19,7 +19,7 @@ The receiver device shall have 5 contacts, one for each finger
 The contacts shall provide a haptic feedback when an information is sent to that finger.  
 The kind of haptic feedback shall allow for use over several quarters of an hour without leading to artifacts in the sensation of the fingers.   
 ## System architecture - Top Level
-![JPG image](https://github.com/TomK57/Mobile-device-for-deafblind-people/blob/main/assets/systemarchitecture.jpg)
+![JPG image](assets/systemarchitecture.jpg)
 ### Power supply
 The devices shall operate from batteries/accus  
 Battery lifetime 1.000h
