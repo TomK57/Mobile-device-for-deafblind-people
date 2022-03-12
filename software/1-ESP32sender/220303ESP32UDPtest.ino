@@ -2,7 +2,7 @@
  * 220304 Kr add touchpad function at pin D4 
  * 220306 Kr change esp32-hal-touch.c function touchRead, RTC_IO_TOUCH_CFG_REG, DRANGE 11 -> 01 = 1V  
  *           Changed thershold to 180 after some measurements
- *  
+ * 22ß311 Kr changed touch count threshold to 2, was too unstable 
  */
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -14,8 +14,8 @@
 //#define TOUCHPIN1 4  // Touch0 GPIO4
 #define TOUCHPIN1 32 // Touch9 GPIO32
 
-const char * ssid = "TJ";
-const char * password = "593LK2459a27b7h%";
+const char * ssid = "";
+const char * password = "";
 
 unsigned int localPort = 45678;      // local port to listen on
 unsigned int remoteport = 45678;
@@ -132,7 +132,7 @@ bool checkTouch(){
     touch3 = touchRead(TOUCHPIN1);
     if(touch3 <= THRESHOLD) touchCount++;
     t3 = micros() - t3; 
-    if(touchCount >= 1) return(true);
+    if(touchCount >= 2) return(true);
     else return(false);
 }
 
