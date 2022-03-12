@@ -11,8 +11,8 @@
 #define BUZZERPIN 16
 #define PACKETSIZE 32
 
-const char * ssid = "TJ";
-const char * password = "593LK2459a27b7h%";
+const char * ssid = "";
+const char * password = "";
 unsigned int localPort = 45678;      // local port to listen on
 unsigned int remoteport = 45678;
 char packetBuffer[PACKETSIZE]; //buffer to hold incoming packet
