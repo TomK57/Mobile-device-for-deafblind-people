@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+input[type="text"]{
+  width: 90%;
+//  height: 5vh;
+  font-size: 25px;
+
+}
+
+input[type="button"]{
+  width: 9%;
+//  height: 5.6vh;
+  font-size: 25px;
+}
+
+.rxd{
+  height: 90vh;
+}
+
+#rxConsole {
+  width: 99%;
+  height: 50%;
+  resize: none;
+  font-size: 10px;
+}
+
+#roundTrip {
+  width: 99%;
+  height: 50%;
+  resize: none;
+  font-size: 10px;
+}
+</style>
+
+<script>
+var Socket;
+function start() {
+  Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+  
+  Socket.onmessage = function(evt) {
+	if (evt.data.charAt(0)==='t') {
+	  var d= new Date();
+	  document.getElementById("roundTrip").value += d.getMilliseconds()-parseInt(evt.data.slice(1));
+	  document.getElementById("roundTrip").value += " Time/RssI: " + evt.data.slice(1) + "  ";
+	}
+	else 	document.getElementById("rxConsole").value += evt.data ;
+  } 
+}
+
+var rtTimer = setInterval(myTimer, 10000);
+
+function myTimer() {
+  var d = new Date();
+  Socket.send("t"+d.getMilliseconds());
+} 
+
+function enterpressed() {
+ Socket.send(document.getElementById("txbuff").value);
+ document.getElementById("txbuff").value = "";
+}
+</script>
+
+<body onload="javascript:start();">
+   <div>		
+		<input class="txd" type="text" id="txbuff" onkeydown="if(event.keyCode == 13) enterpressed();">
+		<input class="txd" type="button" onclick="enterpressed();" value="Send" >
+		<a href='./index.html'>Home</a>
+  </div>
+  <br>
+  <div class="rxd">
+    <textarea id="rxConsole" readonly></textarea>
+	<textarea id="roundTrip" readonly></textarea>
+  </div>
+</body>
+</html>
