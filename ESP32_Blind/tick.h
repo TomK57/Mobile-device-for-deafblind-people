@@ -5,11 +5,13 @@
 
 #include <Arduino.h>
 #include <WebSocketsServer.h>
+#include <WebSocketsClient.h>
 
 extern WebSocketsServer webSocket;
 extern IPAddress apIP;
 extern char ssid[32];
 extern char password[32];
+extern WebSocketsClient webSocketClient;
 
 #define IN0 15 //D15
 #define IN1 4 //D4

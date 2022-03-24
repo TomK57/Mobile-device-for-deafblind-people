@@ -1,5 +1,24 @@
 #include "tick.h"
 
+extern tickC* tick;
+
+void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
+
+  switch(type) {
+    case WStype_DISCONNECTED:
+      Serial.printf("[WSc] Disconnected!\n");
+      break;
+    case WStype_CONNECTED:
+      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      break;
+    case WStype_TEXT:
+      Serial.printf("[WSc] get text: %s\n", payload);
+      if (length>3) tick->command((char*)payload); // process command
+      else tick->processTick(payload[0]); // process serial tick input
+      break;
+  }
+}
+
 tickC::tickC() {
 
   pinMode(OUT0, OUTPUT);
@@ -127,7 +146,7 @@ void tickC::tickCommand(char c) { // process tick command
                 Serial.print(".");
                 delay(1000);
                 i++;
-              } while (i < 60);
+              } while (i < 600);
               Serial.println();
               break; 
     case 'c': Serial.println("Switch to client"); 
@@ -144,8 +163,12 @@ void tickC::tickCommand(char c) { // process tick command
                 Serial.print(".");
                 delay(1000);
                 i++;
-              } while (i < 60);
+              } while (i < 6000);
               Serial.println();
+              
+              webSocketClient.begin(apIP, 81, "/");
+              webSocketClient.onEvent(webSocketClientEvent);
+              webSocketClient.setReconnectInterval(5000);
               break; 
     case 's': Serial.println("Switch to access point server");
               WiFi.mode(WIFI_AP); 

@@ -12,6 +12,7 @@
 #include <LITTLEFS.h>
 
 // own c++ classes
+#include <WebSocketsClient.h>
 #include "websocket.h"
 #include "handleHttp.h"
 #include "tick.h"
@@ -29,6 +30,7 @@ String inputString = "";         // a String to hold incoming data (currently no
 
 tickC* tick;  // process tick class
 
+WebSocketsClient webSocketClient;
 
 void setup(void) {
   
@@ -105,6 +107,7 @@ void loop(void) {
 
   // process webSocket messages
   webSocket.loop();
+  webSocketClient.loop();
   
   // process web server messages
   server.handleClient();
