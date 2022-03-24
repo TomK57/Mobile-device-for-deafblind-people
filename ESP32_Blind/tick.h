@@ -38,23 +38,25 @@ class tickC {
                                    {0,'1','2','3','4','5','6','7','8','9','0','!','"',' ','%','&','/','(',')','<','>',',','.','?',';',CHARSETCHAR,'-','+',':','@','=',COMMANDCHAR}};
     
     byte getIOs();
+
     
   public:
 
       int stabTime = 20; // tick stabilization time in ms
       int outSpeed = 500; // string output speed in ms/character
-      int pulseCount = 3;
-      int pulseDuration = 5;
-      int comMode = 0; //comand Mode aktive
-      int charSet = 0; //character Set
+      int pulseCount = 3; // number of tick pulses
+      int pulseDuration = 5; // duration of tick pulses
+      int comMode = 0; //comand Mode aktive 
+      int charSet = 0; //current character Set
+      byte tickClient = 0;   // client mode active flag  
       
       tickC();
 
-      char getCharacter();
-      void setCharacter(char c);
+      char getCharacter(); // get character from tick device input
+      void setCharacter(char c); // send character to tick device output
       void command(String c);
       void tickCommand(char c);
       void processTick(char c);
-      void sendWorld(String c);
+      void sendWorld(String c); // send character to all connected devices
 };
 #endif

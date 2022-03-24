@@ -148,6 +148,7 @@ void tickC::tickCommand(char c) { // process tick command
                 i++;
               } while (i < 600);
               Serial.println();
+              tickClient=0;
               break; 
     case 'c': Serial.println("Switch to client"); 
               WiFi.mode(WIFI_STA); 
@@ -169,12 +170,14 @@ void tickC::tickCommand(char c) { // process tick command
               webSocketClient.begin(apIP, 81, "/");
               webSocketClient.onEvent(webSocketClientEvent);
               webSocketClient.setReconnectInterval(5000);
+              tickClient=1;
               break; 
     case 's': Serial.println("Switch to access point server");
               WiFi.mode(WIFI_AP); 
               WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
               delay(100);
               WiFi.softAP(ssid);
+              tickClient=0;
               break; 
   }
 }

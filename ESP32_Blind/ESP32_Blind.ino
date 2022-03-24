@@ -107,7 +107,9 @@ void loop(void) {
 
   // process webSocket messages
   webSocket.loop();
-  webSocketClient.loop();
+  
+  // process webClient if active
+  if (tick->tickClient) webSocketClient.loop();
   
   // process web server messages
   server.handleClient();
