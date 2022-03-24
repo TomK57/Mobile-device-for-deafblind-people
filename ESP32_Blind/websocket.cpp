@@ -1,14 +1,12 @@
 #include <Arduino.h>
 #include "websocket.h"
+#include "tick.h"
 
 WebSocketsServer webSocket = WebSocketsServer(81);    // websocket server on port 81
 
-extern long interval;  // interval at which to vibrate
-extern int pulsecount; // pulsecount
-extern int previousinput; // input state
+extern tickC* tick;
 
-
-char WS_Status=0; // WebSocket status
+char WS_Status = 0; // WebSocket status
 
 void webSendStatus(String s) { // send status message "! ...."
   s="! "+s; 
@@ -38,31 +36,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       break;
       
     case WStype_TEXT:                     // if new text data is received
-      if (length>=1) {
-        String s="[";
-        switch (payload[0]) { // process websocket command
-          case '+': interval++;
-                    webSocket.broadcastTXT("Interval " + String(interval)+ " Pulsecount "+ String(pulsecount)+"\n");
-                    break;
-          case '-': interval--; 
-                    webSocket.broadcastTXT("Interval " + String(interval)+ " Pulsecount "+ String(pulsecount)+"\n");
-                    break;
-          case 'u': pulsecount++;  
-                    webSocket.broadcastTXT("Interval " + String(interval)+ " Pulsecount "+ String(pulsecount)+"\n");
-                    break;
-          case 'd': pulsecount--; 
-                    webSocket.broadcastTXT("Interval " + String(interval)+ " Pulsecount "+ String(pulsecount)+"\n");
-                    break;
-          case '*': // Tick
-                    previousinput=2;
-                    break;
-          case 'R': // reset target
-                    webSocket.broadcastTXT("Reboot...\n");
-                    delay(1000);
-                    ESP.restart();
-                    break;
-      }
-    }
-    break;
+         if (length>3) tick->command((char*)payload); // process command
+         else tick->processTick(payload[0]); // process serial tick input
+         break;
   }
 }

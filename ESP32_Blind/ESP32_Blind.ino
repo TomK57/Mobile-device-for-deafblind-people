@@ -14,6 +14,7 @@
 // own c++ classes
 #include "websocket.h"
 #include "handleHttp.h"
+#include "tick.h"
 
 //Basic comunication settings ///////////////////////////////////////////////////////////////////////
 char ssid[32] = "ap";   // name of access point
@@ -24,16 +25,10 @@ IPAddress apIP(192, 168, 2, 2); // access point IP adress
 DNSServer dnsServer;
 WebServer server(80);    // webserver on port 80
 
-int ledPin     = 2; // the port number of the on-board LED pin
-long interval  = 5; // initial interval duration to vibrate
-int pulsecount = 3; // initial vibrate pulsecount
+String inputString = "";         // a String to hold incoming data (currently not used here)
 
-unsigned long currentMillis;
-unsigned long previousMillis = 0; // last time
+tickC* tick;  // process tick class
 
-// String inputString = "";         // a String to hold incoming data (currently not used here)
-
-int input, previousinput; // input pin states
 
 void setup(void) {
   
@@ -100,76 +95,36 @@ void setup(void) {
 
   // I/O pin initialisation
   pinMode(ledPin, OUTPUT);
-  pinMode(32, OUTPUT);
-  pinMode(33, OUTPUT);
-  pinMode(15, INPUT); 
 
-//  inputString.reserve(200);
+  inputString.reserve(200);
+
+  tick = new tickC(); // initialize tick class
 }
 
 void loop(void) {
 
+  // process webSocket messages
   webSocket.loop();
+  
+  // process web server messages
   server.handleClient();
+
+  // process OTA SW update
   ArduinoOTA.handle();
 
-  while (Serial.available()) { // new commadn from serial port?
-    // get the new byte:
-    char inChar = (char)Serial.read();
-/*    // add it to the inputString:
-    inputString += inChar;
-    if (inChar == '\n') {
-      Serial.println(inputString);
-      previousinput = 2;
-      inputString = "";
+  // process serial input
+  while (Serial.available()) { // new command from serial port ?
+    char inChar = (char)Serial.read(); // get the new byte:
+    inputString += inChar; // add it to the inputString:
+    if (inChar == '\n') { // if line complete
+      if (inputString.length() > 3) tick->command(inputString); // process command
+      else tick->processTick(inputString[0]); // process serial tick input
+      inputString = ""; // clear line
     }
-*/
-    switch (inChar) { // process command
-      case '+': interval++; break;   // + for intervall increase
-      case '-': interval--; break;   // - for intervall decrease
-      case 'u': pulsecount++; break; // u for pulsecount increase
-      case 'd': pulsecount--; break; // d for pulsecount decreased
-    }
-    // report new settings
-    Serial.print("Interval ");
-    Serial.print(interval);
-    Serial.print(" Pulsecount ");
-    Serial.print(pulsecount);
-    Serial.print(" Freq. ");
-    Serial.print(250/interval/pulsecount);
-    Serial.print(" Duration ");
-    Serial.println(interval*2*pulsecount);
   }
 
-  // get input status
-  input = digitalRead(15);
-  if (input != previousinput ) { // if input changes
-    
-    if ((input==0) || (previousinput==2)) { // if input low or tick command from websocket
-     for (int i=0; i< pulsecount; i++) { // send number of pulses
-      digitalWrite(ledPin, 1); // pulse on
-      digitalWrite(32, 1);
-      digitalWrite(33, 0);
-      do {
-        currentMillis = millis();
-      } while (currentMillis - previousMillis < interval); // wait interval time
-      previousMillis = currentMillis;
-
-      digitalWrite(ledPin, 0); // pulse off
-      digitalWrite(32, 0);
-      digitalWrite(33, 1);
-      do {
-        currentMillis = millis();
-      } while (currentMillis - previousMillis < interval); // wait intervall time
-      previousMillis = currentMillis;
-     }
-     Serial.println("*");
-     webSocket.broadcastTXT("*\n");  
-    }
-    digitalWrite(32, 0); // pulse deactivate
-    digitalWrite(33, 0);
-    previousinput = input;
-  }
+  // process tick input
+  if (char input = tick->getCharacter()) tick->processTick(input);
   
   delay(10); // 10ms loop
 }
