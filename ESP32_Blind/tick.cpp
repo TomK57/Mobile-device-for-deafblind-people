@@ -100,13 +100,10 @@ void tickC::setCharacter(char c) { // output character to IO-Device
 
 void tickC::command(String c) { // process commands
   switch (c[0]) { // process command
-    case '+': if (c.length() > 4) stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // + for intervall increase
-    case '-': if (c.length() > 4) stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // - for intervall decrease
-    case 'u': if (c.length() > 4) pulseCount=atoi((char*)&c[2]); Serial.printf("pulseCount: %d\n",pulseCount); break;   // + for intervall increase
-    case 'd': if (c.length() > 4) pulseCount=atoi((char*)&c[2]); Serial.printf("pulseCount: %d\n",pulseCount); break;   // - for intervall decrease
-    case 'U': if (c.length() > 4) pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // + for intervall increase
-    case 'D': if (c.length() > 4) pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // - for intervall decrease
-    case 'o': if (c.length() > 4) for (int i=2; i<c.length()-2; i++) { setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
+    case 's': if (c.length() > 4) stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // + for intervall increase
+    case 'c': if (c.length() > 4) pulseCount=atoi((char*)&c[2]); Serial.printf("pulseCount: %d\n",pulseCount); break;   // + for intervall increase
+    case 'd': if (c.length() > 4) pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // + for intervall increase
+    case 'o': if (c.length() > 4) for (int i=2; i<c.length()-2; i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
     case 'R': Serial.println("Rebooting..."); ESP.restart(); break;// reset target
   }
 }
