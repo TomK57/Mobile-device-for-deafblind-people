@@ -125,10 +125,7 @@ void loop(void) {
     char inChar = (char)Serial.read(); // get the new byte:
     inputString += inChar; // add it to the inputString:
     if (inChar == '\n') { // if line complete
-      if (inputString.length() > 4) {
-        inputString[inputString.length()-2] = 0; 
-        tick->lineCommand(inputString); // process line command
-      }
+      if (inputString.length() > 4) tick->lineCommand(inputString.substring(0, inputString.length() - 2)); // process line command without cr/lf
       else tick->processTick(inputString[0]); // process serial tick input
       inputString = ""; // clear line
     }
