@@ -34,16 +34,21 @@ WebSocketsClient webSocketClient;
 
 void setup(void) {
   
-  WiFi.persistent(false); // don't write to flash
-  WiFi.setHostname(ssid);
-  WiFi.mode(WIFI_AP); // wifi acces point mode
-//  WiFi.setSleepMode(WIFI_NONE_SLEEP);
-
   Serial.begin(115200); // start serial communication
   delay(100);
 
   if (!LITTLEFS.begin()) Serial.println(F("Error initializing Fielsystem"));
 
+  tick = new tickC(); // initialize tick class
+
+  tick->loadSettings("/ap.cfg"); // load current configuration
+  
+  WiFi.persistent(false); // don't write to flash
+  WiFi.setHostname(ssid);
+  WiFi.mode(WIFI_AP); // wifi acces point mode
+//  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  delay(100);
+  
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   delay(100);
   WiFi.softAP(ssid);
@@ -99,11 +104,6 @@ void setup(void) {
   pinMode(ledPin, OUTPUT);
 
   inputString.reserve(200);
-
-  tick = new tickC(); // initialize tick class
-
-  tick->saveSettings("/ap.cfg");
-  tick->loadSettings("/ap.cfg");
 }
 
 void loop(void) {
@@ -125,7 +125,10 @@ void loop(void) {
     char inChar = (char)Serial.read(); // get the new byte:
     inputString += inChar; // add it to the inputString:
     if (inChar == '\n') { // if line complete
-      if (inputString.length() > 3) tick->lineCommand(inputString); // process command
+      if (inputString.length() > 4) {
+        inputString[inputString.length()-2] = 0; 
+        tick->lineCommand(inputString); // process line command
+      }
       else tick->processTick(inputString[0]); // process serial tick input
       inputString = ""; // clear line
     }

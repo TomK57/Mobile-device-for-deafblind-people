@@ -25,12 +25,24 @@ void tickC::loadSettings(char* FileN) {
     Serial.println(F("Error opening seting file for reading"));
   }
   else {
-    String x=f.readStringUntil('\n');
+    String x = f.readStringUntil('\n');
     x.trim();
-    String apName = x;
-    Serial.println(apName); 
-    int y = atoi(f.readStringUntil('\n').c_str());
-    Serial.printf("y=%d\n",y);
+    String ssid = x;
+    Serial.print("Device ");
+    Serial.println(ssid);
+     
+    stabTime = atoi(f.readStringUntil('\n').c_str());
+    Serial.printf("stabTime = %d\n",stabTime);
+    outSpeed = atoi(f.readStringUntil('\n').c_str());
+    Serial.printf("outSpeed = %d\n",outSpeed);
+    pulseDuration = atoi(f.readStringUntil('\n').c_str());
+    Serial.printf("pulseDuration = %d\n",pulseDuration);
+    apIP[0] = atoi(f.readStringUntil('.').c_str());
+    apIP[1] = atoi(f.readStringUntil('.').c_str());
+    apIP[2] = atoi(f.readStringUntil('.').c_str());
+    apIP[3] = atoi(f.readStringUntil('\n').c_str());
+    Serial.printf("apIP = %d.%d.%d.%d\n",apIP[0],apIP[1],apIP[2],apIP[3]);
+    
     String s=f.readStringUntil('\n');
     if (s != String("End\r")) Serial.println(F("Error reading seting file"));
     f.close();
@@ -43,9 +55,11 @@ void tickC::saveSettings(char* FileN) {
     Serial.println(F("Error opening seting file for writing"));
   }
   else {
-    f.println("Test");
-    f.println(10);
-
+    f.println(ssid);
+    f.println(stabTime);
+    f.println(outSpeed);
+    f.println(pulseDuration);
+    f.printf("%d.%d.%d.%d\n",apIP[0],apIP[1],apIP[2],apIP[3]);
     f.println("End");
     f.close();
   }
@@ -152,10 +166,17 @@ void tickC::setCharacter(char c) { // output character to IO-Device
 
 void tickC::lineCommand(String c) { // process commands
   switch (c[0]) { // process command
-    case 's': stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // + for intervall increase
-    case 'd': pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // + for intervall increase
-    case 'o': for (int i=2; i<c.length()-2; i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
-    case 'R': Serial.println("Rebooting..."); ESP.restart(); break;// reset target
+    case 's': stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;
+    case 'd': pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;
+    case 'x': outSpeed=atoi((char*)&c[2]); Serial.printf("outSpeed: %d\n",outSpeed); break;
+    case 'o': for (int i=2; i<c.length(); i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
+    case 'n': strlcpy(ssid,(char*)&c[2],32); Serial.printf("device Name: %s\n",ssid); WiFi.setHostname(ssid); WiFi.softAP(ssid); MDNS.begin(ssid); break; // change device name  
+    case 'r': sendWorld("Rebooting...\n"); ESP.restart(); break;// reset target
+    case 'g': c[1]='/'; loadSettings((char*)&c[1]); break; // get (load) current configuration from file system
+    case 'p': c[1]='/'; saveSettings((char*)&c[1]); Serial.printf("Config stored in %s\n",(char*)&c[1]); break; // put (save) current configuration to file system
+    case 'i': apIP[0] = atoi((char*)&c[2]); apIP[1] = atoi((char*)&c[6]);
+              apIP[2] = atoi((char*)&c[10]); apIP[3] = atoi((char*)&c[14]);
+              break; // config save and Reboot needed to be effective! Example i 192.168.002.002
   }
 }
 
@@ -166,7 +187,7 @@ void tickC::tickCommand(char c) { // process tick command
   switch (c) { // process command
     case 'w': Serial.println("Switch to wifi"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin("EasyBox-DB4716", "XXXXXXXX");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
@@ -184,7 +205,7 @@ void tickC::tickCommand(char c) { // process tick command
               break; 
     case 'c': Serial.println("Switch to client"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin(ssid, password);
+              WiFi.begin("ap", "");
               Serial.print(F("\nConnecting to access point server"));
               delay(1000);
               pinMode(2, OUTPUT);

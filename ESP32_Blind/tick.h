@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
+#include <ESPmDNS.h>
 #include <LITTLEFS.h>
 
 extern WebSocketsServer webSocket;
