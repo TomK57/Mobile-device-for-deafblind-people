@@ -1,6 +1,4 @@
-Accesspoint / Websocket example code with html webserver
-
-copyright DHS, Desert Hard- & Software, Harald Wüst
+DeafBlind Accesspoint / Websocket code with html webserver                                    copyright DHS, Desert Hard- & Software, Harald Wüst
 
 Functionality:
 
