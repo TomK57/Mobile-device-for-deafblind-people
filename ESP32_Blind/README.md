@@ -43,9 +43,13 @@ The first character of the command defines the functionality:
 - 'o'   Send a string of characters to the network. Example "o hello" -> sends the character sequence  'h' 'e' 'l' 'l' 'o'  to the network 
         which is outputed to all connected DeafBlind tick devices.
 - 's'   Set the stabilization time for character tick detection. Example s 20 -> sets the stabTime to 20 ms
-- 'd'   Set the character speed for the 'o' command. Example d 500 -> sets the outSpeed to 500 ms
+- 'd'   Set the pulse duration for character tick output. Example d 20 -> sets the pulseDuration to 20 ms
+- 'x'   Set the character speed for the 'o' command. Example x 200 -> sets the outSpeed to 200 ms
 - 'n'   Change device name (wifi accesspoint and MDNS web browser name). Maximal length is 31 characters. Example n MaxMusterman -> sets name to MaxMusterman
-- 'RRR' reeboot the tick-device
+- 'g'   Get (load) current configuration from file system. File ap.cfg is the startup configuration. Example g ap.cfg
+- 'p'   Put (save) current configuration to file system. File ap.cfg is the startup configuration. File upload via web browser is possible. Example p ap.cfg
+- 'i'   Change IP-Address, config save and reebot neccessary! (3.digit format with leading zerros) Example: i 192.168.002.002
+- 'rrr' reeboot the tick-device
 
 
 To start a DeafBlind network the devices should be startet one after the other giving them a uniqe name ('n MaxMusterman') and switch to client mode ('*' 'c'). Only the last device should stay in server mode where all other devices will than start to connect to.
