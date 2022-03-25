@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
+#include <LITTLEFS.h>
 
 extern WebSocketsServer webSocket;
 extern IPAddress apIP;
@@ -44,19 +45,21 @@ class tickC {
 
       int stabTime = 20; // tick stabilization time in ms
       int outSpeed = 500; // string output speed in ms/character
-      int pulseCount = 3; // number of tick pulses
       int pulseDuration = 5; // duration of tick pulses
       int comMode = 0; //comand Mode aktive 
       int charSet = 0; //current character Set
-      byte tickClient = 0;   // client mode active flag  
+      byte tickClient = 0;   // client mode active flag
+      byte outMode = 0; // output mode normal, report all characters to world
       
       tickC();
 
       char getCharacter(); // get character from tick device input
       void setCharacter(char c); // send character to tick device output
-      void command(String c);
+      void lineCommand(String c);
       void tickCommand(char c);
       void processTick(char c);
       void sendWorld(String c); // send character to all connected devices
+      void saveSettings(char* FileN);
+      void loadSettings(char* FileN);
 };
 #endif

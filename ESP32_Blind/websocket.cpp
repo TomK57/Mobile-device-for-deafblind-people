@@ -36,7 +36,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       break;
       
     case WStype_TEXT:                     // if new text data is received
-         if (length>3) tick->command((char*)payload); // process command
+         if (length>3) tick->lineCommand((char*)payload); // process command
          else tick->processTick(payload[0]); // process serial tick input
          break;
   }

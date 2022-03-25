@@ -13,11 +13,44 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
     case WStype_TEXT:
       Serial.printf("[WSc] get text: %s\n", payload);
-      if (length>3) tick->command((char*)payload); // process command
+      if (length>3) tick->lineCommand((char*)payload); // process command
       else tick->processTick(payload[0]); // process serial tick input
       break;
   }
 }
+
+void tickC::loadSettings(char* FileN) {
+  File f = LITTLEFS.open(FileN, "r");  // Open Setting file
+  if (!f) {
+    Serial.println(F("Error opening seting file for reading"));
+  }
+  else {
+    String x=f.readStringUntil('\n');
+    x.trim();
+    String apName = x;
+    Serial.println(apName); 
+    int y = atoi(f.readStringUntil('\n').c_str());
+    Serial.printf("y=%d\n",y);
+    String s=f.readStringUntil('\n');
+    if (s != String("End\r")) Serial.println(F("Error reading seting file"));
+    f.close();
+  }
+}
+
+void tickC::saveSettings(char* FileN) {
+  File f = LITTLEFS.open(FileN, "w");  // Open Setting file
+  if (!f) {
+    Serial.println(F("Error opening seting file for writing"));
+  }
+  else {
+    f.println("Test");
+    f.println(10);
+
+    f.println("End");
+    f.close();
+  }
+}
+
 
 tickC::tickC() {
 
@@ -73,12 +106,12 @@ char tickC::getCharacter() { // get input from IO-device
 void tickC::setCharacter(char c) { // output character to IO-Device
   unsigned long currentMillis;
   unsigned long previousMillis = 0; // last time
-  int i,pulsecount;
+  int i;
   bool b0,b1,b2,b3,b4;
   
   for (i=1;i<32;i++) if (tickChar[charSet][i] == c) break;
   if (i == 32) { // char not found
-    sendWorld("Wrong chracter\n");
+    sendWorld("???");
     return;  
   }
 
@@ -89,7 +122,7 @@ void tickC::setCharacter(char c) { // output character to IO-Device
   b4 = i & 16;  
  
   digitalWrite(ledPin, 1);
-  for (i=0; i< pulseCount; i++) { // send number of pulses
+  for (i=0; i< charSet+1; i++) { // charSet determines number of pulses
     digitalWrite(OUT0, ! b0);  // pulse on
     digitalWrite(OUT1, ! b1);  // pulse on
     digitalWrite(OUT2, ! b2);  // pulse on
@@ -117,12 +150,11 @@ void tickC::setCharacter(char c) { // output character to IO-Device
 }
 
 
-void tickC::command(String c) { // process commands
+void tickC::lineCommand(String c) { // process commands
   switch (c[0]) { // process command
-    case 's': if (c.length() > 4) stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // + for intervall increase
-    case 'c': if (c.length() > 4) pulseCount=atoi((char*)&c[2]); Serial.printf("pulseCount: %d\n",pulseCount); break;   // + for intervall increase
-    case 'd': if (c.length() > 4) pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // + for intervall increase
-    case 'o': if (c.length() > 4) for (int i=2; i<c.length()-2; i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
+    case 's': stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;   // + for intervall increase
+    case 'd': pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;   // + for intervall increase
+    case 'o': for (int i=2; i<c.length()-2; i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
     case 'R': Serial.println("Rebooting..."); ESP.restart(); break;// reset target
   }
 }
@@ -134,7 +166,7 @@ void tickC::tickCommand(char c) { // process tick command
   switch (c) { // process command
     case 'w': Serial.println("Switch to wifi"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin("EasyBox-DB4716", "xxxxxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
@@ -179,16 +211,28 @@ void tickC::tickCommand(char c) { // process tick command
               WiFi.softAP(ssid);
               tickClient=0;
               break; 
+    case 'm': outMode = ! outMode; 
+              Serial.printf("outMode: %d\n",outMode); 
+              break; // change outMode
+    case 'n': sendWorld("\n");   // send return CR/LF
+              break;
   }
 }
 
 
 void tickC::processTick(char c) {  // process tick input 
 
+  if ((c != CHARSETCHAR) && (c != COMMANDCHAR) && (comMode == 0) || (outMode == 0)) { // all character if outMode normal otherwise no special characters
+    Serial.print(c);
+    String s(c);
+    webSocket.broadcastTXT(s); // output char to world
+    setCharacter(c); // output char to tick device
+  }
+
   if (c == CHARSETCHAR) { // char set character than 
     charSet = ( charSet + 1) % CHARSETNUM; // loop through character sets
-     Serial.printf("Char Set %d\n", charSet);
-     return;
+    Serial.printf("Char Set %d\n", charSet);
+    return;
   }
 
   if (c == COMMANDCHAR) { // comand character than
@@ -198,18 +242,14 @@ void tickC::processTick(char c) {  // process tick input
     return;
   }
 
-  if (comMode == 0) { // normal character, send to world
-    Serial.print(c);
-    String s(c);
-    webSocket.broadcastTXT(s); // output char to world
-    setCharacter(c); // output char to tick device
-  }
-  else tickCommand(c); // process tick command  
+  if (comMode > 0) tickCommand(c); // process tick command  
+  if (comMode == 1) comMode = 0; // if not locked switch com mode back to normal mode
 
-  if (comMode == 1) comMode = 0; // if not locked switch com mode off
+  charSet = 0; // switch back to normal charset after every character
 }
 
+
 void tickC::sendWorld(String c) {
-    Serial.println(c); // output to serial
+    Serial.print(c); // output to serial
     webSocket.broadcastTXT(c); // output to world
 }

@@ -26,7 +26,7 @@ IPAddress apIP(192, 168, 2, 2); // access point IP adress
 DNSServer dnsServer;
 WebServer server(80);    // webserver on port 80
 
-String inputString = "";         // a String to hold incoming data (currently not used here)
+String inputString = ""; // String to hold incoming data
 
 tickC* tick;  // process tick class
 
@@ -101,6 +101,9 @@ void setup(void) {
   inputString.reserve(200);
 
   tick = new tickC(); // initialize tick class
+
+  tick->saveSettings("/ap.cfg");
+  tick->loadSettings("/ap.cfg");
 }
 
 void loop(void) {
@@ -122,7 +125,7 @@ void loop(void) {
     char inChar = (char)Serial.read(); // get the new byte:
     inputString += inChar; // add it to the inputString:
     if (inChar == '\n') { // if line complete
-      if (inputString.length() > 3) tick->command(inputString); // process command
+      if (inputString.length() > 3) tick->lineCommand(inputString); // process command
       else tick->processTick(inputString[0]); // process serial tick input
       inputString = ""; // clear line
     }
