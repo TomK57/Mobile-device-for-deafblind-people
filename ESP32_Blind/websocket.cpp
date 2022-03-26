@@ -24,7 +24,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
   switch (type) {
     case WStype_DISCONNECTED:             // if the websocket is disconnected
-      Serial.printf("[%u] Disconnected!\n", num);
+      Serial.printf("\nDevice %d, Name %s Disconnected!\n", num, tick->clientName[num]);
+      tick->clientName[num]="";
       WS_Status=0;
       break;
       
@@ -36,6 +37,11 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       break;
       
     case WStype_TEXT:                     // if new text data is received
+         if (payload[0]=='!') {
+           tick->clientName[num]=(char*)&payload[1];
+           Serial.printf("\nDevice %d, Name %s connected\n",num,tick->clientName[num]);
+           break;
+         }
          if (length>3) tick->lineCommand((char*)payload); // process command
          else tick->processTick(payload[0]); // process serial tick input
          break;

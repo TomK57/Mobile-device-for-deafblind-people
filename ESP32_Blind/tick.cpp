@@ -2,23 +2,6 @@
 
 extern tickC* tick;
 
-void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
-
-  switch(type) {
-    case WStype_DISCONNECTED:
-      Serial.printf("[WSc] Disconnected!\n");
-      break;
-    case WStype_CONNECTED:
-      Serial.printf("[WSc] Connected to url: %s\n", payload);
-      break;
-    case WStype_TEXT:
-      Serial.printf("[WSc] get text: %s\n", payload);
-      if (length>3) tick->lineCommand((char*)payload); // process command
-      else tick->processTick(payload[0]); // process serial tick input
-      break;
-  }
-}
-
 void tickC::loadSettings(char* FileN) {
   File f = LITTLEFS.open(FileN, "r");  // Open Setting file
   if (!f) {
@@ -68,7 +51,7 @@ void tickC::saveSettings(char* FileN) {
 
 tickC::tickC() {
 
-  pinMode(OUT0, OUTPUT);
+  pinMode(OUT0, OUTPUT);    // init IO-Pins
   pinMode(OUT1, OUTPUT);
   pinMode(OUT2, OUTPUT);
   pinMode(OUT3, OUTPUT);
@@ -78,6 +61,11 @@ tickC::tickC() {
   pinMode(IN2, INPUT_PULLUP); 
   pinMode(IN3, INPUT_PULLUP); 
   pinMode(IN4, INPUT_PULLUP); 
+
+  previousinput = getIOs(); // init IO-State
+  
+  tickString.reserve(200);
+  tickLine.reserve(200);
 }
 
 
@@ -112,7 +100,7 @@ char tickC::getCharacter() { // get input from IO-device
       Millis = millis(); // reset timer   
     }
   } while ( millis() - Millis < stabTime ); // wait for input stabilization
-  
+ 
   return tickChar[charSet][input]; // return tick character from current char set
 }
 
@@ -123,7 +111,7 @@ void tickC::setCharacter(char c) { // output character to IO-Device
   int i;
   bool b0,b1,b2,b3,b4;
   
-  for (i=1;i<32;i++) if (tickChar[charSet][i] == c) break;
+  for (i=0;i<32;i++) if (tickChar[charSet][i] == c) break;
   if (i == 32) { // char not found
     sendWorld("???");
     return;  
@@ -169,14 +157,20 @@ void tickC::lineCommand(String c) { // process commands
     case 's': stabTime=atoi((char*)&c[2]);   Serial.printf("stabTime: %d\n",stabTime); break;
     case 'd': pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;
     case 'x': outSpeed=atoi((char*)&c[2]); Serial.printf("outSpeed: %d\n",outSpeed); break;
-    case 'o': for (int i=2; i<c.length(); i++) { Serial.print(c[i]); setCharacter(c[i]); delay(outSpeed);} Serial.println(); break;
-    case 'n': strlcpy(ssid,(char*)&c[2],32); Serial.printf("device Name: %s\n",ssid); WiFi.setHostname(ssid); WiFi.softAP(ssid); MDNS.begin(ssid); break; // change device name  
+    case 'o': for (int i=2; i<c.length(); i++) { processTick(c[i]); delay(outSpeed);} break;
+    case 'n': strlcpy(ssid,(char*)&c[2],32); Serial.printf("device Name: %s\n",ssid); WiFi.setHostname(ssid); MDNS.begin(ssid); break; // change device name  
     case 'r': sendWorld("Rebooting...\n"); ESP.restart(); break;// reset target
     case 'g': c[1]='/'; loadSettings((char*)&c[1]); break; // get (load) current configuration from file system
     case 'p': c[1]='/'; saveSettings((char*)&c[1]); Serial.printf("Config stored in %s\n",(char*)&c[1]); break; // put (save) current configuration to file system
     case 'i': apIP[0] = atoi((char*)&c[2]); apIP[1] = atoi((char*)&c[6]);
               apIP[2] = atoi((char*)&c[10]); apIP[3] = atoi((char*)&c[14]);
               break; // config save and Reboot needed to be effective! Example i 192.168.002.002
+    case 'c': int pos=atoi((char*)&c[4]); // set character in character set. Example: c ! 43
+              if (pos/32 < CHARSETNUM) {
+                tickChar[pos / 32][pos % 32] = c[2]; 
+                Serial.printf("Set %d, Pos %d: %c\n",pos/32,pos%32,c[2]);
+              }
+              break;
   }
 }
 
@@ -187,7 +181,7 @@ void tickC::tickCommand(char c) { // process tick command
   switch (c) { // process command
     case 'w': Serial.println("Switch to wifi"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin("WLAN-SSID", "xxxxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
@@ -205,43 +199,68 @@ void tickC::tickCommand(char c) { // process tick command
               break; 
     case 'c': Serial.println("Switch to client"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin("ap", "");
-              Serial.print(F("\nConnecting to access point server"));
+              WiFi.begin(ap_ssid,password);
+              WiFi.setHostname(ssid); 
+              Serial.println(F("Connecting to deaf blind server"));
               delay(1000);
-              pinMode(2, OUTPUT);
               do {
-                digitalWrite(2, u);
+                digitalWrite(ledPin, u);
                 if (u == 0) u = 1;
                 else u = 0;
                 if (WiFi.status() == WL_CONNECTED) break;
                 Serial.print(".");
                 delay(1000);
                 i++;
-              } while (i < 6000);
-              Serial.println();
-              
+              } while (i < 10);
+              digitalWrite(ledPin, 0);
+              if (i != 10) Serial.println("Connected");
+              MDNS.begin(ssid);               
               webSocketClient.begin(apIP, 81, "/");
               webSocketClient.onEvent(webSocketClientEvent);
               webSocketClient.setReconnectInterval(5000);
               tickClient=1;
-              break; 
+
+              break;
     case 's': Serial.println("Switch to access point server");
               WiFi.mode(WIFI_AP); 
               WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
               delay(100);
-              WiFi.softAP(ssid);
+              WiFi.softAP(ap_ssid);
+              WiFi.setHostname(ap_ssid); 
+              MDNS.begin(ap_ssid); 
               tickClient=0;
               break; 
     case 'm': outMode = ! outMode; 
               Serial.printf("outMode: %d\n",outMode); 
               break; // change outMode
     case 'n': sendWorld("\n");   // send return CR/LF
+              tickLine = tickString.substring(0, tickString.length() - 2);
+              tickString = "";
+              Serial.print("Stored line: ");
+              Serial.println(tickLine);
+              break;
+    case 'z': tickString = tickString.substring(0, tickString.length() - 1)+" "; // add space character to text line
+              break;
+    case 'e': if (tickLine.length() > 2) tick->lineCommand(tickLine); // process tickLine without cr/lf
+              break;
+    case 'l': u = 0; // send names of all active clients to world
+              for (i=0; i<MAXCLIENTS; i++) { // loop through clients
+                if (clientName[i][0] != 0) { // activ with given name?
+                  for (int j=0; j<clientName[j].length(); j++) { processTick(clientName[i][j]); delay(outSpeed); } // process active client name
+                  delay(outSpeed); // short pause between names
+                  delay(outSpeed);
+                  u++; // count clients
+                }
+              }
+              Serial.printf(" %d active clients\n",u);
               break;
   }
 }
 
 
 void tickC::processTick(char c) {  // process tick input 
+
+  tickString += c; // add it to the inputString:
 
   if ((c != CHARSETCHAR) && (c != COMMANDCHAR) && (comMode == 0) || (outMode == 0)) { // all character if outMode normal otherwise no special characters
     Serial.print(c);
@@ -251,22 +270,29 @@ void tickC::processTick(char c) {  // process tick input
   }
 
   if (c == CHARSETCHAR) { // char set character than 
-    charSet = ( charSet + 1) % CHARSETNUM; // loop through character sets
+    if (charSetLock) { // char set locked -> unlock and reset to normal charset
+      charSetLock = 0;
+      charSet = 0;
+    }
+    else  charSet = ( charSet + 1) % CHARSETNUM; // loop through character sets
     Serial.printf("Char Set %d\n", charSet);
     return;
   }
 
   if (c == COMMANDCHAR) { // comand character than
-    comMode++; // switch com mode on (=1) or lock com mode (=2)
-    if (comMode == 3) comMode = 0; // switch com mode off if previously locked
-    Serial.printf("CommandMode %d\n",comMode);
-    return;
+    if (charSet == 0) { // normal char set -> normal command
+      comMode++; // switch com mode on (=1) or lock com mode (=2)
+      if (comMode == 3) comMode = 0; // switch com mode off if previously locked
+      Serial.print(" Command ");
+      return;
+    }
+    else charSetLock = 1; // commandchar after charset change -> lock charset
   }
 
   if (comMode > 0) tickCommand(c); // process tick command  
   if (comMode == 1) comMode = 0; // if not locked switch com mode back to normal mode
 
-  charSet = 0; // switch back to normal charset after every character
+  if (charSetLock == 0) charSet = 0; // switch back to normal charset after every character if not locked
 }
 
 

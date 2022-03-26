@@ -12,12 +12,14 @@
 extern WebSocketsServer webSocket;
 extern IPAddress apIP;
 extern char ssid[32];
+extern char ap_ssid[32];
 extern char password[32];
 extern WebSocketsClient webSocketClient;
+extern void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 
 #define IN0 15 //D15
 #define IN1 4 //D4
-#define IN2 10 //D10
+#define IN2 18 //D18
 #define IN3 22 //D22
 #define IN4 23 //D23
 
@@ -29,15 +31,18 @@ extern WebSocketsClient webSocketClient;
 
 #define ledPin 2
 
-#define CHARSETNUM 2
+#define CHARSETNUM 3
 #define CHARSETCHAR '#'
 #define COMMANDCHAR '*'
+
+#define MAXCLIENTS 5 // also defined in websocketserver.h
 
 class tickC {
   private:
     byte previousinput;
-    char tickChar[CHARSETNUM][32]={{0,'a','e','n','i','d','t','ä','o','k','m','f','l','g','ö','r','u','y','b','p','z','w','q','j','s',CHARSETCHAR,'x','v','ü','c','h',COMMANDCHAR},
-                                   {0,'1','2','3','4','5','6','7','8','9','0','!','"',' ','%','&','/','(',')','<','>',',','.','?',';',CHARSETCHAR,'-','+',':','@','=',COMMANDCHAR}};
+    char tickChar[CHARSETNUM][32]={{' ','a','e','n','i','d','t','ä','o','k','m','f','l','g','ö','r','u','y','b','p','z','w','q','j','s',CHARSETCHAR,'x','v','ü','c','h',COMMANDCHAR},
+                                   {' ','1','2','3','4','5','6','7','8','9','0','!','"',' ','%','&','/','(',')','<','>',',','.','?',';',CHARSETCHAR,'-','+',':','@','=',COMMANDCHAR},
+                                   {' ','A','E','N','I','D','T','Ä','O','K','M','F','L','G','Ö','R','U','Y','B','P','Z','W','Q','J','S',CHARSETCHAR,'X','V','Ü','C','H',COMMANDCHAR}};
     
     byte getIOs();
 
@@ -49,8 +54,12 @@ class tickC {
       int pulseDuration = 5; // duration of tick pulses
       int comMode = 0; //comand Mode aktive 
       int charSet = 0; //current character Set
+      byte charSetLock = 0; // char set locked flag
       byte tickClient = 0;   // client mode active flag
       byte outMode = 0; // output mode normal, report all characters to world
+      String tickString = ""; // current text line
+      String tickLine = ""; // memorized last text line
+      String clientName[MAXCLIENTS]; // names of connected clients
       
       tickC();
 

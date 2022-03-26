@@ -18,7 +18,8 @@
 #include "tick.h"
 
 //Basic comunication settings ///////////////////////////////////////////////////////////////////////
-char ssid[32] = "ap";   // name of access point
+char ssid[32] = "dbclient";   // standard name of client
+char ap_ssid[32] = "dbserver"; // name of server access point
 char password[32] = ""; // access point password
 IPAddress apIP(192, 168, 2, 2); // access point IP adress
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +32,28 @@ String inputString = ""; // String to hold incoming data
 tickC* tick;  // process tick class
 
 WebSocketsClient webSocketClient;
+void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
+
+  switch(type) {
+    case WStype_DISCONNECTED:
+      Serial.printf("[WSc] Disconnected!\n");
+      break;
+    case WStype_CONNECTED:
+      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      tick->sendWorld("!");
+      tick->sendWorld(ssid);
+      break;
+    case WStype_TEXT:
+      Serial.printf("[WSc] get text: %s\n", payload);
+      if (length>3) tick->lineCommand((char*)payload); // process command
+      else tick->processTick(payload[0]); // process serial tick input
+      break;
+  }
+}
+
 
 void setup(void) {
-  
+
   Serial.begin(115200); // start serial communication
   delay(100);
 
@@ -44,25 +64,64 @@ void setup(void) {
   tick->loadSettings("/ap.cfg"); // load current configuration
   
   WiFi.persistent(false); // don't write to flash
-  WiFi.setHostname(ssid);
-  WiFi.mode(WIFI_AP); // wifi acces point mode
-//  WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  delay(100);
-  
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  delay(100);
-  WiFi.softAP(ssid);
 
+// try client connection to server first
+  WiFi.mode(WIFI_STA); 
+  WiFi.setHostname(ssid); 
+  WiFi.begin(ap_ssid,password); // try to connect to dbserver
+  Serial.println(F("Try to connect to deaf blind server"));
+  delay(100);
+  byte u=0,i=0;
+  do {
+    digitalWrite(ledPin, u);
+    if (u == 0) u = 1;
+    else u = 0;
+    if (WiFi.status() == WL_CONNECTED) break;
+    Serial.print(".");
+    delay(1000);
+    i++;
+  } while (i < 10);
+  digitalWrite(ledPin, 0);
+  if (i < 10) {
+    Serial.println("\nConnected");
+    MDNS.begin(ssid);               
+    webSocketClient.begin(apIP, 81, "/");
+    webSocketClient.onEvent(webSocketClientEvent);
+    webSocketClient.setReconnectInterval(5000);
+    tick->tickClient=1;
+
+  }
+  else { // no acces point found switch to acces point mode
+    Serial.println("\nNo server found switch to server mode");
+    // start access point init
+    WiFi.setHostname(ap_ssid);
+    WiFi.mode(WIFI_AP); // wifi acces point mode
+    //  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    delay(100);
+  
+    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    delay(100);
+    WiFi.softAP(ap_ssid);
+
+    // Add service to MDNS-SD
+    MDNS.addService("http", "tcp", 80);
+  
+    if (!MDNS.begin(ap_ssid)) Serial.println("Error setting up MDNS responder!");
+    else Serial.println("mDNS responder started");
+
+    // end access point init
+  }
+  
   // if DNSServer is started with "*" for domain name, it will reply with provided IP to all DNS request
   dnsServer.start(53, "*", apIP);
-
+  
   Serial.print("AP IP address: ");
   Serial.println(apIP);
 
   delay(100);
 
-  ArduinoOTA.setHostname(ssid);
-  ArduinoOTA.setPassword(ssid);
+  ArduinoOTA.setHostname(ap_ssid);
+  ArduinoOTA.setPassword(ap_ssid);
 
   ArduinoOTA.onStart([]() { Serial.println("OTA Start"); });
   ArduinoOTA.onEnd([]() { Serial.println("OTA End"); });
@@ -79,15 +138,6 @@ void setup(void) {
   });
   ArduinoOTA.begin();
   Serial.println("OTA started\n");
-
-  if (!MDNS.begin(ssid)) {
-        Serial.println("Error setting up MDNS responder!");
-    }
-  else Serial.println("mDNS responder started");
-
-  // Start TCP (HTTP) server
-  // Add service to MDNS-SD
-  MDNS.addService("http", "tcp", 80);
 
   // setup html pages
   server.begin(); // Web server start
