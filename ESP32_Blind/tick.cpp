@@ -181,7 +181,7 @@ void tickC::tickCommand(char c) { // process tick command
   switch (c) { // process command
     case 'w': Serial.println("Switch to wifi"); 
               WiFi.mode(WIFI_STA); 
-              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
+              WiFi.begin("EasyBox-DB4716", "xxxxxxxx");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
