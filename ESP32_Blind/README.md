@@ -34,6 +34,11 @@ There are two special characters to extend the functionality:
         send all   -> sends every entered charcater including the special charcaters to all connected devices (standard mode after startup)
         send chars -> sends only the normal characters from the character set, special characters or commands are not send out 
         so that the output text is not disturbed
+  > 'n' Send new line charater (cr/lf) to world
+  > 'z' add space character ' ' to text line
+  > 'e' Axecute previously stared text line (characters between the last new line commands. this can be used to process longer string comands also via
+        tick-device (see description below). Example: * n s * z # 1 # 0 # 0 * n  command line "s 100" is stored, than * e to change stabTime
+  > 'l' list alle connected devices with a given name to the world
 
 All the single character input can come from the DeafBlind tick-device, the socket communication (other connected devices or web browsers) or the serial interface. So DeafBlind people can "talk" to each other or with non DeafBlinds using thier tick-devices.
 
@@ -45,10 +50,11 @@ The first character of the command defines the functionality:
 - 's'   Set the stabilization time for character tick detection. Example s 20 -> sets the stabTime to 20 ms
 - 'd'   Set the pulse duration for character tick output. Example d 20 -> sets the pulseDuration to 20 ms
 - 'x'   Set the character speed for the 'o' command. Example x 200 -> sets the outSpeed to 200 ms
-- 'n'   Change device name (wifi accesspoint and MDNS web browser name). Maximal length is 31 characters. Example n MaxMusterman -> sets name to MaxMusterman
+- 'n'   Change device name (wifi accesspoint and MDNS web browser name). Maximal length is 31 characters. Example n xy -> sets name to xy
 - 'g'   Get (load) current configuration from file system. File ap.cfg is the startup configuration. Example g ap.cfg
 - 'p'   Put (save) current configuration to file system. File ap.cfg is the startup configuration. File upload via web browser is possible. Example p ap.cfg
 - 'i'   Change IP-Address, config save and reebot neccessary! (3.digit format with leading zerros) Example: i 192.168.002.002
+- '!'   Special WebSocket command! Set name of connected device after new connection, to be send from client. Example: !xy -> sets device name to xy
 - 'rrr' reeboot the tick-device
 
 
