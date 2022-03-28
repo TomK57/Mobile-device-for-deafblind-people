@@ -31,6 +31,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       
     case WStype_CONNECTED: {              // if a new websocket connection is established
         IPAddress ip = webSocket.remoteIP(num);
+        tick->clientName[num]="unknown";
         WS_Status=1;
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
       }
@@ -38,8 +39,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       
     case WStype_TEXT:                     // if new text data is received
          if (payload[0]=='!') {
-           tick->clientName[num]=(char*)&payload[1];
+           tick->clientName[num]=(char*)&payload[2];
            Serial.printf("\nDevice %d, Name %s connected\n",num,tick->clientName[num]);
+           break;
+         }
+        if (payload[0]=='>') { // set raiseHand level for client num
+           tick->raiseHand[num]=atoi((char*)&payload[1]); // to be changed to store reaise hand order!
+           Serial.printf("\nDevice %d, Name %s raiseHand %d\n",num,tick->clientName[num],tick->raiseHand[num]);
            break;
          }
          if (length>3) tick->lineCommand((char*)payload); // process command

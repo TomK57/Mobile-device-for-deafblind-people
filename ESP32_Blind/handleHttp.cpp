@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "handleHttp.h"
+#include <ESPmDNS.h>
 #include <WebServer.h>
 #include <LITTLEFS.h>
 
@@ -8,32 +9,17 @@ extern WebServer server;
 
 extern char ssid[32];
 extern char password[32];
+extern char ap_ssid[32];
+extern IPAddress apIP;
 
 File fsUploadFile;
 
 /** Load WLAN credentials from EEPROM */
 void loadCredentials() {
-  EEPROM.begin(512);
-  EEPROM.get(0, ssid);
-  EEPROM.get(0+sizeof(ssid), password);
-  char ok[2+1];
-  EEPROM.get(0+sizeof(ssid)+sizeof(password), ok);
-  EEPROM.end();
-  if (String(ok) != String("OK")) {
-    ssid[0] = 0;
-    password[0] = 0;
-  }
 }
 
 /** Store WLAN credentials to EEPROM */
 void saveCredentials() {
-  EEPROM.begin(512);
-  EEPROM.put(0, ssid);
-  EEPROM.put(0+sizeof(ssid), password);
-  char ok[2+1] = "OK";
-  EEPROM.put(0+sizeof(ssid)+sizeof(password), ok);
-  EEPROM.commit();
-  EEPROM.end();
 }
 
 /** IP to String? */
@@ -159,7 +145,7 @@ void handleFileUpload(){ // upload a new file to the LITTLEFS
 
 /** Handle the WLAN save form and redirect to WLAN config page again */
 void handleWifiSave() {
-uint8_t i;
+uint8_t i=0,u=0;
   
   Serial.println(F("wifi save"));
   server.arg("n").toCharArray(ssid, sizeof(ssid) - 1);
@@ -172,30 +158,36 @@ uint8_t i;
   server.client().stop(); // Stop is needed because we sent no content length
   if (strlen(ssid) > 0) { // Request WLAN connect with new credentials if there is a SSID
     WiFi.disconnect();
+    delay(100);
     WiFi.begin ( ssid, password );
+    delay(100);
     Serial.print(F("\nConnecting to "));
     Serial.print(ssid);
-    delay(1000);
-    for (i=0; i<20; i++) {
+    pinMode(2, OUTPUT);
+    do {
+      digitalWrite(2, u);
+      if (u == 0) u = 1;
+      else u = 0;
       if (WiFi.status() == WL_CONNECTED) break;
       Serial.print(".");
       delay(1000);
+      i++;
+    } while (i < 60);
+    Serial.println();
+    if (i<60) { 
+      saveCredentials();
+      //tick->tickClient=0;
+      Serial.print(F("\nConnection Ok"));
+      return;
     }
   }
-  if (i<20) { 
-    saveCredentials();
-    Serial.print(F("\nConnection Ok, new Credentials saved"));
-  }
-  else {
-    ssid[0]=0;
-    password[0]=0;
-// tbd. open access point
-    WiFi.begin("EasyBox-DB4716", "5EEA7B7DC"); // connect to network
-    Serial.print(F("\nReconnecting to EasyBox-DB4716"));
-    delay(1000);
-    while (WiFi.status() != WL_CONNECTED) {
-      Serial.print(".");
-      delay(1000);
-    }
-  }
+  ssid[0]=0;
+  password[0]=0;
+  WiFi.mode(WIFI_AP); 
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  delay(100);
+  WiFi.softAP(ap_ssid);
+  WiFi.setHostname(ap_ssid); 
+  MDNS.begin(ap_ssid); 
+  //tick->tickClient=0;
 }

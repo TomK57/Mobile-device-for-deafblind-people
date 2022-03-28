@@ -29,6 +29,8 @@ WebServer server(80);    // webserver on port 80
 
 String inputString = ""; // String to hold incoming data
 
+unsigned long Millis;
+
 tickC* tick;  // process tick class
 
 WebSocketsClient webSocketClient;
@@ -40,7 +42,7 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
     case WStype_CONNECTED:
       Serial.printf("[WSc] Connected to url: %s\n", payload);
-      tick->sendWorld("!");
+      tick->sendWorld("! ");
       tick->sendWorld(ssid);
       break;
     case WStype_TEXT:
@@ -57,6 +59,8 @@ void setup(void) {
   Serial.begin(115200); // start serial communication
   delay(100);
 
+  Serial.println(F("DeafBlind Server Version 0.1 28.03.2022 DHS"));
+  
   if (!LITTLEFS.begin()) Serial.println(F("Error initializing Fielsystem"));
 
   tick = new tickC(); // initialize tick class
@@ -121,7 +125,7 @@ void setup(void) {
   delay(100);
 
   ArduinoOTA.setHostname(ap_ssid);
-  ArduinoOTA.setPassword(ap_ssid);
+  //ArduinoOTA.setPassword("");
 
   ArduinoOTA.onStart([]() { Serial.println("OTA Start"); });
   ArduinoOTA.onEnd([]() { Serial.println("OTA End"); });
@@ -154,7 +158,9 @@ void setup(void) {
   pinMode(ledPin, OUTPUT);
 
   inputString.reserve(200);
+  Millis = millis();
 }
+
 
 void loop(void) {
 
@@ -183,6 +189,9 @@ void loop(void) {
 
   // process tick input
   if (char input = tick->getCharacter()) tick->processTick(input);
+
+  if ((millis() - Millis) > tick->stabTime+tick->pulseDuration*4+10) Serial.print("long processing time!");
+  Millis = millis();
   
-  delay(10); // 10ms loop
+  delay(1); // 1ms loop
 }
