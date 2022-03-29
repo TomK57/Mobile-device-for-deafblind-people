@@ -35,18 +35,19 @@ tickC* tick;  // process tick class
 
 WebSocketsClient webSocketClient;
 void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
-
+  String x("! ");
+      
   switch(type) {
     case WStype_DISCONNECTED:
       Serial.printf("[WSc] Disconnected!\n");
       break;
     case WStype_CONNECTED:
       Serial.printf("[WSc] Connected to url: %s\n", payload);
-      tick->sendWorld("! ");
-      tick->sendWorld(ssid);
+      x.concat(ssid);
+      webSocketClient.sendTXT(x);
       break;
     case WStype_TEXT:
-      Serial.printf("[WSc] get text: %s\n", payload);
+//      Serial.printf("[WSc] get text: %s\n", payload);
       if (length>3) tick->lineCommand((char*)payload); // process command
       else tick->processTick(payload[0]); // process serial tick input
       break;
@@ -181,16 +182,19 @@ void loop(void) {
     char inChar = (char)Serial.read(); // get the new byte:
     inputString += inChar; // add it to the inputString:
     if (inChar == '\n') { // if line complete
+      if (tick->tickClient) webSocketClient.sendTXT(inputString); // output to Server only
       if (inputString.length() > 4) tick->lineCommand(inputString.substring(0, inputString.length() - 2)); // process line command without cr/lf
-      else tick->processTick(inputString[0]); // process serial tick input
+      else if (!tick->tickClient) tick->processTick(inputString[0]); // process serial tick input
       inputString = ""; // clear line
     }
   }
 
   // process tick input
-  if (char input = tick->getCharacter()) tick->processTick(input);
-
-  if ((millis() - Millis) > tick->stabTime+tick->pulseDuration*4+10) Serial.print("long processing time!");
+  if (char input = tick->getCharacter()) {
+      if (tick->tickClient) webSocketClient.sendTXT(input); // output to Server only
+      else tick->processTick(input);
+  }
+//  if ((millis() - Millis) > 2*tick->stabTime+tick->pulseDuration*4+10) Serial.print("long processing time!");
   Millis = millis();
   
   delay(1); // 1ms loop

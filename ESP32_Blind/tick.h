@@ -17,18 +17,6 @@ extern char password[32];
 extern WebSocketsClient webSocketClient;
 extern void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 
-#define IN0 15 //D15
-#define IN1 4 //D4
-#define IN2 18 //D18
-#define IN3 22 //D22
-#define IN4 23 //D23
-
-#define OUT0 32
-#define OUT1 33
-#define OUT2 34
-#define OUT3 35
-#define OUT4 25
-
 #define ledPin 2
 
 #define CHARSETNUM 3
@@ -46,9 +34,20 @@ class tickC {
     
     byte getIOs();
 
-    
   public:
 
+      byte  IN0=15; //D15
+      byte  IN1=4; //D4
+      byte  IN2=18; //D18
+      byte  IN3=22; //D22
+      byte  IN4=23; //D23
+
+      byte  OUT0=32;
+      byte  OUT1=33;
+      byte  OUT2=34;
+      byte  OUT3=35;
+      byte  OUT4=25;
+      
       int stabTime = 70; // tick stabilization time in ms
       int outSpeed = 500; // string output speed in ms/character
       int pulseDuration = 4; // duration of tick pulses
@@ -59,6 +58,8 @@ class tickC {
       byte tickClient = 0;   // client mode active flag
       byte outMode = 0; // output mode normal, report all characters to world, 1 no special characters 2 no output
       byte raiseHandMode = 0; // raise hand mode on / of
+      byte tickMode = 0; // select tickMode Bit0 up/down or down only delay, Bit1 all fingers up no delay, Bit2 time at start or time at every change (slower) 
+      
       String tickString = ""; // current text line
       String tickLine = ""; // memorized last text line
       String clientName[MAXCLIENTS]; // names of connected clients
