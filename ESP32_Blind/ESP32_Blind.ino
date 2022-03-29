@@ -66,7 +66,7 @@ void setup(void) {
 
   tick = new tickC(); // initialize tick class
 
-  tick->loadSettings("/ap.cfg"); // load current configuration
+  tick->loadSettings((char*)"/ap.cfg"); // load current configuration
   
   WiFi.persistent(false); // don't write to flash
 
