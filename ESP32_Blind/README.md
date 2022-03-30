@@ -1,9 +1,11 @@
-DeafBlind Accesspoint / Websocket code with html webserver                                    copyright DHS, Desert Hard- & Software, Harald Wüst
+DeafBlind Accesspoint / Websocket code with html webserver  for ESP32 or ESP8266                      copyright DHS, Desert Hard- & Software, Harald Wüst
+
+See db.docx Dokumentation...
 
 Functionality:
 
 The Sketch opens an acces point called "ap" with IP-adress 192.168.2.2.
-A Web-Browser can access the startpage on this 192.168.2.2 or with ap.local
+A Web-Browser can access the startpage on this 192.168.2.2 or with http://dbserver.local
 
 With the button "Socket communication" a socket connection to the device can be opened.
 
