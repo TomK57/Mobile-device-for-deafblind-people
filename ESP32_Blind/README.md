@@ -1,6 +1,6 @@
 DeafBlind Accesspoint / Websocket code with html webserver  for ESP32 or ESP8266                      copyright DHS, Desert Hard- & Software, Harald Wüst
 
-See db.docx Dokumentation...
+See DB.docx Dokumentation...
 
 Functionality:
 
