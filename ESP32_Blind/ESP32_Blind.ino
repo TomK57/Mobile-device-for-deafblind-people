@@ -1,15 +1,27 @@
-// ESP32 Mobile-device-for-deafblind-people
+// ESP32 / ESP88266 Mobile-device-for-deafblind-people
 // https://github.com/TomK57/Mobile-device-for-deafblind-people
 // Settings: Board: ESP32 Dev Module, 4MB, 1.2MB APP/1.5MB SPIFFS, Upload Speed 115000, Flash Freq. 80 Mhz, SSL Basic
+// or: Settings: Board: Generic ESP8266 Module, 4MB, FS 1MB ota 1MB, Upload Speed 115000, SSL Basic
 
 // regular Libraries
 #include <time.h>
+
+#ifdef ESP32
 #include <WiFi.h>
 #include <WebServer.h>
-#include <DNSServer.h>
 #include <ESPmDNS.h>
-#include <ArduinoOTA.h>
 #include <LITTLEFS.h>
+#else
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+#include <LittleFS.h>
+#define LITTLEFS LittleFS
+#endif
+
+#include <DNSServer.h>
+#include <ArduinoOTA.h>
+
 #include <WebSocketsClient.h>
 
 // own c++ classes
@@ -25,7 +37,12 @@ IPAddress apIP(192, 168, 2, 2); // access point IP adress
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 DNSServer dnsServer;
+
+#ifdef ESP32
 WebServer server(80);    // webserver on port 80
+#else
+ESP8266WebServer server(80);    // webserver on port 80
+#endif
 
 String inputString = ""; // String to hold incoming data
 
@@ -60,7 +77,7 @@ void setup(void) {
   Serial.begin(115200); // start serial communication
   delay(1000);
 
-  Serial.println(F("DeafBlind Server Version 0.4 30.03.2022 DHS"));
+  Serial.println(F("DeafBlind Server Version 0.5 30.03.2022 DHS"));
   
   if (!LITTLEFS.begin()) Serial.println(F("Error initializing Fielsystem"));
 
@@ -72,7 +89,9 @@ void setup(void) {
 
 // try client connection to server first
   WiFi.mode(WIFI_STA); 
+#ifdef ESP32
   WiFi.setHostname(ssid); 
+#endif
   WiFi.begin(ap_ssid,password); // try to connect to dbserver
   Serial.println(F("Try to connect to deaf blind server"));
   delay(100);
@@ -99,7 +118,9 @@ void setup(void) {
   else { // no acces point found switch to acces point mode
     Serial.println("\nNo server found switch to server mode");
     // start access point init
+#ifdef ESP32
     WiFi.setHostname(ap_ssid);
+#endif
     WiFi.mode(WIFI_AP); // wifi acces point mode
     //  WiFi.setSleepMode(WIFI_NONE_SLEEP);
     delay(100);
@@ -127,7 +148,7 @@ void setup(void) {
 
   ArduinoOTA.setHostname(ap_ssid);
   //ArduinoOTA.setPassword("");
-
+#ifdef ESP32
   ArduinoOTA.onStart([]() { Serial.println("OTA Start"); });
   ArduinoOTA.onEnd([]() { Serial.println("OTA End"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
@@ -143,6 +164,7 @@ void setup(void) {
   });
   ArduinoOTA.begin();
   Serial.println("OTA started\n");
+#endif
 
   // setup html pages
   server.begin(); // Web server start
@@ -175,7 +197,9 @@ void loop(void) {
   server.handleClient();
 
   // process OTA SW update
-  ArduinoOTA.handle();
+#ifdef ESP32
+   ArduinoOTA.handle();
+#endif
 
   // process serial input
   while (Serial.available()) { // new command from serial port ?

@@ -190,7 +190,15 @@ void tickC::lineCommand(String c) { // process commands
     case 'd': pulseDuration=atoi((char*)&c[2]); Serial.printf("pulseDuration: %d\n",pulseDuration); break;
     case 'x': outSpeed=atoi((char*)&c[2]); Serial.printf("outSpeed: %d\n",outSpeed); break;
     case 'o': if (!tickClient) for (int i=2; i<c.length(); i++) { processTick(c[i]); delay(outSpeed);} break; // output line on server only
-    case 'n': if (!tickClient) { strlcpy(ssid,(char*)&c[2],32); Serial.printf("device Name: %s\n",ssid); WiFi.setHostname(ssid); MDNS.begin(ssid);} break; // change device name  
+    case 'n': if (!tickClient) { 
+                strlcpy(ssid,(char*)&c[2],32); 
+                Serial.printf("device Name: %s\n",ssid); 
+#ifdef ESP32
+                WiFi.setHostname(ssid); 
+#endif
+                MDNS.begin(ssid);
+              } 
+              break; // change device name  
     case 'r': if (!tickClient) {sendWorld("Rebooting...\n"); ESP.restart();} break;// reset target
     case 'g': c[1]='/'; loadSettings((char*)&c[1]); break; // get (load) current configuration from file system
     case 'p': c[1]='/'; saveSettings((char*)&c[1]); Serial.printf("Config stored in %s\n",(char*)&c[1]); break; // put (save) current configuration to file system
@@ -231,7 +239,7 @@ void tickC::tickCommand(char c) { // process tick command
               delay(100); 
               WiFi.mode(WIFI_AP_STA);
               delay(100);
-              WiFi.begin("EasyBox-DB4716", "xxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
@@ -244,13 +252,16 @@ void tickC::tickCommand(char c) { // process tick command
                 delay(1000);
                 i++;
               } while (i < 60);
-              Serial.println();
+              Serial.println(ssid);
               tickClient=0;
+              
               break; 
     case 'c': Serial.println(" Switch to client"); 
               WiFi.mode(WIFI_STA); 
               WiFi.begin(ap_ssid,password);
+#ifdef ESP32
               WiFi.setHostname(ssid); 
+#endif
               Serial.println(F("Connecting to deaf blind server"));
               delay(1000);
               do {
@@ -277,7 +288,9 @@ void tickC::tickCommand(char c) { // process tick command
               WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
               delay(100);
               WiFi.softAP(ap_ssid);
+#ifdef ESP32
               WiFi.setHostname(ap_ssid); 
+#endif
               MDNS.begin(ap_ssid); 
               tickClient=0;
               break; 

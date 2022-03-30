@@ -6,8 +6,14 @@
 #include <Arduino.h>
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
+#ifdef ESP32
 #include <ESPmDNS.h>
 #include <LITTLEFS.h>
+#else
+#include <ESP8266mDNS.h>
+#include <LittleFS.h>
+#define LITTLEFS LittleFS
+#endif
 
 extern WebSocketsServer webSocket;
 extern IPAddress apIP;
@@ -17,7 +23,11 @@ extern char password[32];
 extern WebSocketsClient webSocketClient;
 extern void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 
+#ifdef ESP32
 #define ledPin 2
+#else
+#define ledPin 16
+#endif
 
 #define CHARSETNUM 3
 #define CHARSETCHAR '#'

@@ -1,11 +1,18 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "handleHttp.h"
+#ifdef ESP32
 #include <ESPmDNS.h>
 #include <WebServer.h>
 #include <LITTLEFS.h>
-
 extern WebServer server;
+#else
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <LittleFS.h>
+#define LITTLEFS LittleFS
+extern ESP8266WebServer server;
+#endif
 
 extern char ssid[32];
 extern char password[32];
@@ -187,7 +194,9 @@ uint8_t i=0,u=0;
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   delay(100);
   WiFi.softAP(ap_ssid);
+#ifdef ESP32  
   WiFi.setHostname(ap_ssid); 
+#endif
   MDNS.begin(ap_ssid); 
   //tick->tickClient=0;
 }
