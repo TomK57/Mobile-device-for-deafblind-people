@@ -25,7 +25,20 @@ void tickC::loadSettings(char* FileN) {
     apIP[2] = atoi(f.readStringUntil('.').c_str());
     apIP[3] = atoi(f.readStringUntil('\n').c_str());
     Serial.printf("apIP = %d.%d.%d.%d\n",apIP[0],apIP[1],apIP[2],apIP[3]);
-    
+
+    IN0 = atoi(f.readStringUntil(' ').c_str());
+    IN1 = atoi(f.readStringUntil(' ').c_str());
+    IN2 = atoi(f.readStringUntil(' ').c_str());
+    IN3 = atoi(f.readStringUntil(' ').c_str());
+    IN4 = atoi(f.readStringUntil(' ').c_str());
+    OUT0 = atoi(f.readStringUntil(' ').c_str());
+    OUT1 = atoi(f.readStringUntil(' ').c_str());
+    OUT2 = atoi(f.readStringUntil(' ').c_str());
+    OUT3 = atoi(f.readStringUntil(' ').c_str());
+    OUT4 = atoi(f.readStringUntil('\n').c_str());
+
+    Serial.printf("In0 %d In1 %d In2 %d In3 %d In4 %d  Out0 %d Out1 %d Out2 %d Out3 %d Out4 %d\n",IN0,IN1,IN2,IN3,IN4,OUT0,OUT1,OUT2,OUT3,OUT4);
+
     String s=f.readStringUntil('\n');
     if (s != String("End\r")) Serial.println(F("Error reading seting file"));
     f.close();
@@ -42,7 +55,8 @@ void tickC::saveSettings(char* FileN) {
     f.println(stabTime);
     f.println(outSpeed);
     f.println(pulseDuration);
-    f.printf("%d.%d.%d.%d\n",apIP[0],apIP[1],apIP[2],apIP[3]);
+    f.printf("%03d.%03d.%03d.%03d\n",apIP[0],apIP[1],apIP[2],apIP[3]);
+    f.printf("%02d %02d %02d %02d %02d %02d %02d %02d %02d %02d\n",IN0,IN1,IN2,IN3,IN4,OUT0,OUT1,OUT2,OUT3,OUT4);
     f.println("End");
     f.close();
   }
@@ -189,7 +203,19 @@ void tickC::lineCommand(String c) { // process commands
                 Serial.printf("Set %d, Pos %d: %c\n",pos/32,pos%32,c[2]);
               }
               break;
-    case 't': tickMode=atoi((char*)&c[2]); Serial.printf(" tickMode: %d\n",tickMode); break;     // change tickMode        
+    case 't': tickMode=atoi((char*)&c[2]); Serial.printf(" tickMode: %d\n",tickMode); break;     // change tickMode
+    case 'q': if (c.length()>2) IN0=atoi((char*)&c[2]); // set IO-Ports Example q 15 04 18
+              if (c.length()>5) IN1=atoi((char*)&c[5]);
+              if (c.length()>8) IN2=atoi((char*)&c[8]);
+              if (c.length()>11) IN3=atoi((char*)&c[11]);
+              if (c.length()>14) IN4=atoi((char*)&c[14]);
+              if (c.length()>17) OUT0=atoi((char*)&c[17]);
+              if (c.length()>20) OUT1=atoi((char*)&c[20]);
+              if (c.length()>23) OUT2=atoi((char*)&c[23]);
+              if (c.length()>26) OUT3=atoi((char*)&c[26]);
+              if (c.length()>29) OUT4=atoi((char*)&c[29]);
+              Serial.printf("In0 %2d In1 %2d In2 %2d In3 %2d In4 %2d  Out0 %2d Out1 %2d Out2 %2d Out3 %2d Out4 %2d\n",IN0,IN1,IN2,IN3,IN4,OUT0,OUT1,OUT2,OUT3,OUT4);
+              break;
   }
 }
 
@@ -205,7 +231,7 @@ void tickC::tickCommand(char c) { // process tick command
               delay(100); 
               WiFi.mode(WIFI_AP_STA);
               delay(100);
-              WiFi.begin("EasyBox-DB4716", "xxxxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);

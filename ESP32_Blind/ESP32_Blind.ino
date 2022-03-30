@@ -1,6 +1,6 @@
 // ESP32 Mobile-device-for-deafblind-people
 // https://github.com/TomK57/Mobile-device-for-deafblind-people
-// Settings: Board: ESP32 Dev Module, Upload Speed 115000, Flash Freq. 80 Mhz, SSL Basic
+// Settings: Board: ESP32 Dev Module, 4MB, 1.2MB APP/1.5MB SPIFFS, Upload Speed 115000, Flash Freq. 80 Mhz, SSL Basic
 
 // regular Libraries
 #include <time.h>
@@ -10,9 +10,9 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 #include <LITTLEFS.h>
+#include <WebSocketsClient.h>
 
 // own c++ classes
-#include <WebSocketsClient.h>
 #include "websocket.h"
 #include "handleHttp.h"
 #include "tick.h"
@@ -42,7 +42,7 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.printf("[WSc] Disconnected!\n");
       break;
     case WStype_CONNECTED:
-      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      Serial.printf("[WSc] Connected \n");
       x.concat(ssid);
       webSocketClient.sendTXT(x);
       break;
@@ -58,9 +58,9 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
 void setup(void) {
 
   Serial.begin(115200); // start serial communication
-  delay(100);
+  delay(1000);
 
-  Serial.println(F("DeafBlind Server Version 0.3 29.03.2022 DHS"));
+  Serial.println(F("DeafBlind Server Version 0.4 30.03.2022 DHS"));
   
   if (!LITTLEFS.begin()) Serial.println(F("Error initializing Fielsystem"));
 
