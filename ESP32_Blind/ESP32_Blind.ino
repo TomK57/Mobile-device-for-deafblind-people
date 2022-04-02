@@ -77,7 +77,7 @@ void setup(void) {
   Serial.begin(115200); // start serial communication
   delay(1000);
 
-  Serial.println(F("DeafBlind Server Version 0.5 30.03.2022 DHS"));
+  Serial.println(F("DeafBlind Server Version 0.6 02.04.2022 DHS"));
   
   if (!LITTLEFS.begin()) Serial.println(F("Error initializing Fielsystem"));
 
