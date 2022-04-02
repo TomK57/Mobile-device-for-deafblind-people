@@ -155,22 +155,22 @@ void tickC::setCharacter(char c) { // output character to IO-Device
  
   digitalWrite(ledPin, 1);
   for (i=0; i< charSet+1; i++) { // charSet determines number of pulses
-    digitalWrite(OUT0, ! b0);  // pulse on
-    digitalWrite(OUT1, ! b1);  // pulse on
-    digitalWrite(OUT2, ! b2);  // pulse on
-    digitalWrite(OUT3, ! b3);  // pulse on
-    digitalWrite(OUT4, ! b4);  // pulse on
+    digitalWrite(OUT0, b0);  // pulse on
+    digitalWrite(OUT1, b1);  // pulse on
+    digitalWrite(OUT2, b2);  // pulse on
+    digitalWrite(OUT3, b3);  // pulse on
+    digitalWrite(OUT4, b4);  // pulse on
     previousMillis = millis();
     do {
         currentMillis = millis();
     } while (currentMillis - previousMillis < pulseDuration); // wait interval time
     previousMillis = currentMillis;
 
-    digitalWrite(OUT0, 1);  // pulse off
-    digitalWrite(OUT1, 1);  // pulse off
-    digitalWrite(OUT2, 1);  // pulse off
-    digitalWrite(OUT3, 1);  // pulse off
-    digitalWrite(OUT4, 1);  // pulse off
+    digitalWrite(OUT0, 0);  // pulse off
+    digitalWrite(OUT1, 0);  // pulse off
+    digitalWrite(OUT2, 0);  // pulse off
+    digitalWrite(OUT3, 0);  // pulse off
+    digitalWrite(OUT4, 0);  // pulse off
  
     do {
       currentMillis = millis();
@@ -239,7 +239,7 @@ void tickC::tickCommand(char c) { // process tick command
               delay(100); 
               WiFi.mode(WIFI_AP_STA);
               delay(100);
-              WiFi.begin("EasyBox-DB4716", "xxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);

@@ -46,21 +46,21 @@ class tickC {
 
   public:
 
-      byte  IN0=15; //D15
-      byte  IN1=4; //D4
-      byte  IN2=18; //D18
-      byte  IN3=22; //D22
-      byte  IN4=23; //D23
+      byte  IN0=33; 
+      byte  IN1=32;
+      byte  IN2=27;
+      byte  IN3=14;
+      byte  IN4=12;
 
-      byte  OUT0=32;
-      byte  OUT1=33;
-      byte  OUT2=34;
-      byte  OUT3=35;
+      byte  OUT0=15;
+      byte  OUT1=02;
+      byte  OUT2=04;
+      byte  OUT3=23;
       byte  OUT4=25;
       
       int stabTime = 70; // tick stabilization time in ms
       int outSpeed = 500; // string output speed in ms/character
-      int pulseDuration = 4; // duration of tick pulses
+      int pulseDuration = 70; // duration of tick pulses
 
       int comMode = 0; //comand Mode aktive 
       int charSet = 0; //current character Set
