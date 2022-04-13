@@ -313,7 +313,7 @@ void tickC::tickCommand(char c) { // process tick command
               delay(100); 
               WiFi.mode(WIFI_AP_STA);
               delay(100);
-              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
+              WiFi.begin("EasyBox-DB4716", "xxxxxxxx");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
