@@ -2,6 +2,7 @@
 #define tick_h
 
 //#define DEB
+#define TOUCH
 
 #include <Arduino.h>
 #include <WebSocketsServer.h>
@@ -34,6 +35,7 @@ extern void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length
 #define COMMANDCHAR '*'
 
 #define MAXCLIENTS 5 // also defined in websocketserver.h
+#define TOUCH_HYST 20
 
 class tickC {
   private:
@@ -43,6 +45,8 @@ class tickC {
                                    {' ','A','E','N','I','D','T',196 /*Ä*/,'O','K','M','F','L','G',214 /*Ö*/,'R','U','Y','B','P','Z','W','Q','J','S',CHARSETCHAR,'X','V',COMMANDCHAR,'C','H',0}};
     
     byte getIOs();
+    byte getTouch();
+    bool touchR(byte Port);
 
   public:
 
@@ -61,6 +65,7 @@ class tickC {
       int stabTime = 70; // tick stabilization time in ms
       int outSpeed = 500; // string output speed in ms/character
       int pulseDuration = 70; // duration of tick pulses
+      int touchCompare = 50; // touch compare value
 
       int comMode = 0; //comand Mode aktive 
       int charSet = 0; //current character Set

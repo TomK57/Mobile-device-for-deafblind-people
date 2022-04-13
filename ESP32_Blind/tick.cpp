@@ -39,6 +39,22 @@ void tickC::loadSettings(char* FileN) {
 
     Serial.printf("In0 %d In1 %d In2 %d In3 %d In4 %d  Out0 %d Out1 %d Out2 %d Out3 %d Out4 %d\n",IN0,IN1,IN2,IN3,IN4,OUT0,OUT1,OUT2,OUT3,OUT4);
 
+    pinMode(OUT0, OUTPUT);    // init IO-Pins
+    pinMode(OUT1, OUTPUT);
+    pinMode(OUT2, OUTPUT);
+    pinMode(OUT3, OUTPUT);
+    pinMode(OUT4, OUTPUT);
+#ifndef TOUCH
+    pinMode(IN0, INPUT_PULLUP); 
+    pinMode(IN1, INPUT_PULLUP);
+    pinMode(IN2, INPUT_PULLUP); 
+    pinMode(IN3, INPUT_PULLUP); 
+    pinMode(IN4, INPUT_PULLUP); 
+
+    previousinput = getIOs(); // init IO-State
+#else
+    previousinput = getTouch(); // init Touch-State
+#endif  
     String s=f.readStringUntil('\n');
     if (s != String("End\r")) Serial.println(F("Error reading seting file"));
     f.close();
@@ -70,6 +86,7 @@ tickC::tickC() {
   pinMode(OUT2, OUTPUT);
   pinMode(OUT3, OUTPUT);
   pinMode(OUT4, OUTPUT);
+#ifndef TOUCH
   pinMode(IN0, INPUT_PULLUP); 
   pinMode(IN1, INPUT_PULLUP);
   pinMode(IN2, INPUT_PULLUP); 
@@ -77,11 +94,41 @@ tickC::tickC() {
   pinMode(IN4, INPUT_PULLUP); 
 
   previousinput = getIOs(); // init IO-State
+#else
+  previousinput = getTouch(); // init Touch-State
+#endif  
   
   tickString.reserve(200);
   tickLine.reserve(200);
 }
 
+bool tickC::touchR(byte Port) {
+ int touchVal1, touchVal2,i=0;
+
+ touchVal1 = touchRead(Port);
+ do {
+    touchVal2 = touchRead(Port);
+    i++;
+ } while ((i<5) && (abs(touchVal1-touchVal2) > TOUCH_HYST));
+
+// Serial.printf("%d : %d\n",Port,touchVal2);
+ 
+ if (touchVal2 < touchCompare) return true;
+ else return false;
+}
+
+byte tickC::getTouch() { // get ticks from Touch-Device
+  byte input;
+  // get inputs
+  input = touchR(IN4);
+  input = (input << 1) | touchR(IN3);
+  input = (input << 1) | touchR(IN2);  
+  input = (input << 1) | touchR(IN1);
+  input = (input << 1) | touchR(IN0);
+
+//Serial.printf("%d\n",input);
+  return input;
+}
 
 byte tickC::getIOs() { // get ticks from IO-Device
   byte input;
@@ -91,13 +138,18 @@ byte tickC::getIOs() { // get ticks from IO-Device
   input = (input << 1) | (1-digitalRead(IN2));  
   input = (input << 1) | (1-digitalRead(IN1));
   input = (input << 1) | (1-digitalRead(IN0));
+
   return input;
 }
 
 
 char tickC::getCharacter() { // get input from IO-device
   
+#ifndef TOUCH
   byte input = getIOs();
+#else
+  byte input = getTouch();
+#endif
 
   if (input == previousinput ) return(0); // no finger change, dont wait
   if ( input == 0 ) { // all fingers up, dont wait 
@@ -117,7 +169,12 @@ char tickC::getCharacter() { // get input from IO-device
  
     do { // wait for stable input
       delay(1);
-      input = getIOs(); // get current input
+#ifndef TOUCH
+      input = getIOs();
+#else
+      input = getTouch();
+#endif
+
       if (input != previousinput) { // input changed?
         previousinput = input;     // reset input
         Millis = millis(); // reset timer   
@@ -126,7 +183,13 @@ char tickC::getCharacter() { // get input from IO-device
   }
   else {
     delay(stabTime); // wait stab time for all fingers to be placed
+
+#ifndef TOUCH
     input = getIOs(); // read final input
+#else
+    input = getTouch(); // read final input
+#endif
+
     previousinput = input;  
   }
   
@@ -222,6 +285,17 @@ void tickC::lineCommand(String c) { // process commands
               if (c.length()>23) OUT2=atoi((char*)&c[23]);
               if (c.length()>26) OUT3=atoi((char*)&c[26]);
               if (c.length()>29) OUT4=atoi((char*)&c[29]);
+              pinMode(OUT0, OUTPUT);    // init IO-Pins
+              pinMode(OUT1, OUTPUT);
+              pinMode(OUT2, OUTPUT);
+              pinMode(OUT3, OUTPUT);
+              pinMode(OUT4, OUTPUT);
+              pinMode(IN0, INPUT_PULLUP); 
+              pinMode(IN1, INPUT_PULLUP);
+              pinMode(IN2, INPUT_PULLUP); 
+              pinMode(IN3, INPUT_PULLUP); 
+              pinMode(IN4, INPUT_PULLUP); 
+              previousinput = getIOs(); // init IO-State
               Serial.printf("In0 %2d In1 %2d In2 %2d In3 %2d In4 %2d  Out0 %2d Out1 %2d Out2 %2d Out3 %2d Out4 %2d\n",IN0,IN1,IN2,IN3,IN4,OUT0,OUT1,OUT2,OUT3,OUT4);
               break;
   }
@@ -239,7 +313,7 @@ void tickC::tickCommand(char c) { // process tick command
               delay(100); 
               WiFi.mode(WIFI_AP_STA);
               delay(100);
-              WiFi.begin("EasyBox-DB4716", "xxxxxxx");
+              WiFi.begin("EasyBox-DB4716", "5EEA7B7DC");
               Serial.print(F("\nConnecting to standard WiFi"));
               delay(1000);
               pinMode(2, OUTPUT);
