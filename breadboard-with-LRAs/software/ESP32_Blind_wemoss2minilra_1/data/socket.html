@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+input[type="text"]{
+  width: 80%;
+  font-size: 25px;
+
+}
+
+input[type="button"]{
+  width: 9%;
+  font-size: 25px;
+}
+
+a{
+  width: 9%;
+  font-size: 25px;
+}
+
+.rxd{
+  height: 90vh;
+}
+
+#rxConsole {
+  width: 99%;
+  height: 90%;
+  resize: none;
+  font-size: 25px;
+}
+
+</style>
+
+<script>
+var Socket;
+function start() {
+  Socket = new WebSocket('ws://' + window.location.hostname + ':81/');
+  
+  Socket.onmessage = function(evt) {
+	console.log(evt.data);
+    document.getElementById("rxConsole").value += evt.data ;
+  } 
+}
+
+function enterpressed() {
+ Socket.send(document.getElementById("txbuff").value);
+ document.getElementById("txbuff").value = "";
+}
+</script>
+
+<body onload="javascript:start();">
+   <div>		
+		<input class="txd" type="text" id="txbuff" onkeydown="if(event.keyCode == 13) enterpressed();">
+		<input class="txd" type="button" onclick="enterpressed();" value="Send" >
+		<a class="txd" href='./index.html'>Home</a>
+  </div>
+  <br>
+  <div class="rxd">
+    <textarea id="rxConsole" readonly></textarea>
+  </div>
+</body>
+</html>
