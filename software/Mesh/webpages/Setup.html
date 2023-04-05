@@ -1,0 +1,53 @@
+<div class="DHScontent">
+		<div class="DHSFirstRow" style="font-size:20px;">Stabilisierungszeit<br><br></div>
+		<datalist class="DHSFirstRow" id="markers" style="display: flex; flex-direction: column; justify-content: space-between; writing-mode: vertical-lr;">
+      <option value="10" label=" 10"></option>
+      <option value="100" label="100"></option>
+      <option value="200" label="200"></option>
+      <option value="300" label="300"></option>
+      <option value="400" label="400"></option>
+      <option value="500" label="500"></option>
+    </datalist>
+		<input class="DHSFirstRow" type="range" id="ss" style="font-size:15px; min-width:350px" min="10" max="500" list="markers" onchange = 's.value=value'>
+		<div><input type="number" min=10 max=500 id="s" style="font-size:15px; margin-top:10px; width:5em;" onchange ='ss.value=value'></div>
+		<div>
+			<input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('get s');" value="Cancel" >
+		  <input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('s '+document.getElementById('s').value);" value="Send" >
+	  </div>
+</div>
+<div class="DHScontent">
+		<div class="DHSFirstRow" style="font-size:20px;">Pulsdauer <br><br> </div>
+		<datalist class="DHSFirstRow" id="markers" style="display: flex; flex-direction: column; justify-content: space-between; writing-mode: vertical-lr;">
+      <option value="10" label=" 10"></option>
+      <option value="50" label=" 50"></option>
+      <option value="100" label="100"></option>
+      <option value="150" label="150"></option>
+      <option value="200" label="200"></option>
+      <option value="250" label="250"></option>
+    </datalist>
+		<input class="DHSFirstRow" type="range" id="ds" style="font-size:15px; min-width:350px" min="10" max="250" list="markers" onchange = 'd.value=value'>
+		<div><input type="number" min=10 max=500 id="d" style="font-size:15px; margin-top:10px; width:5em;" onchange ='ds.value=value'></div>
+		<div>
+			<input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('get d');" value="Cancel" >
+		  <input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('d '+document.getElementById('d').value);" value="Send" >
+	  </div>
+</div>
+<div class="DHScontent">
+		<div class="DHSFirstRow" style="font-size:20px;">Ausgabegeschwindigkeit<br><br></div>
+		<datalist class="DHSFirstRow" id="markers" style="display: flex; flex-direction: column; justify-content: space-between; writing-mode: vertical-lr;">
+       <option value="10" label=" 10"></option>
+      <option value="100" label="100"></option>
+      <option value="200" label="200"></option>
+      <option value="300" label="300"></option>
+      <option value="400" label="400"></option>
+      <option value="500" label="500"></option>
+    </datalist>
+		<input class="DHSFirstRow" type="range" id="xs" style="font-size:15px; min-width:350px" min="10" max="500" list="markers" onchange = 'x.value=value'>
+		<div><input type="number" min=10 max=500 id="x" style="font-size:15px; margin-top:10px; width:5em;" onchange ='xs.value=value'></div>
+		<div>
+			<input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('get x');" value="Cancel" >
+		  <input type="button" style="font-size:15px; margin-top:10px; min-width:100px" onclick="Socket.send('x '+document.getElementById('x').value);" value="Send" >
+		</div>
+</div>
+
+<input type="button" style="font-size:15px; margin-top:10px; min-width:420px" onclick="Socket.send('p ap.cfg');" value="Einstellung in Konfigration speichern" >

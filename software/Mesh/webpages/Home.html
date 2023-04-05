@@ -1,0 +1,10 @@
+<div class="DHScontent">
+    <div class="DHSFirstRow">Tick-Eingabe </div>
+		<div class="DHSFirstRow"><input type="text" id="s" style="font-size:15px; min-width:200px" onkeydown="if(event.keyCode == 13) mesh_send();"></div>
+		<input class="DHSFirstRow" type="button" style="font-size:15px;" onclick="mesh_send();" value="Send" >
+</div>
+
+<div class="DHScontent"> 
+    <div class="DHSFirstRow">Tick-Ausgabe </div>
+		<pre class="DHSFirstRow" id="r" style="font-size:20px; min-width:350px"></pre>
+</div>
