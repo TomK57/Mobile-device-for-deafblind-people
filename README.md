@@ -27,4 +27,4 @@ Battery lifetime tbd h (reasonable/acceptable)
 ### Performance
 The devices shall be capable of processing at least 10 keystrokes per seconds   
 ## Pictures of prototypes done so far
-<img src="breadboard-with-LRAs/IMG_0320.JPG" width="200"> <img src="breadboard-with-LRAs/IMG_0320.JPG" width="200">
+<img src="breadboard-with-LRAs/IMG_0320.JPG" width="200"> <img src="breadboard-with-speakers/IMG_0321.JPG" width="200">
