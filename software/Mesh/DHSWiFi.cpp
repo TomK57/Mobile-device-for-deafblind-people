@@ -88,8 +88,8 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
   Serial.println("Disconnected from WiFi access point");
   Serial.print("WiFi lost connection. Reason: ");
   Serial.println(info.wifi_sta_disconnected.reason);
-  Serial.println("Trying to Reconnect");
-  WiFi.begin(ssid, password);
+//  Serial.println("Trying to Reconnect");
+//  WiFi.begin(ssid, password);
 }
 
 void WiFiInitAccessPoint() {
@@ -148,6 +148,40 @@ void WiFiInitAccessPoint() {
   else Serial.printf("Connect to WiFi Acces-Point %s, call of any URL will be redirected to start-page (IP-Adress: %s)\n", DEVICE_NAME,myIP.toString().c_str());
 }
 
+// scan for wifi Networks in range
+uint8_t scanNetworks() {
+    uint8_t f_ssid = 0;
+    uint8_t f_mesh = 0;
+    
+    int n = WiFi.scanNetworks();
+    if (n == 0) Serial.println("no networks found");
+    else {
+        for (int i = 0; i < n; ++i) {
+//            Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+//            Serial.printf("%4d", WiFi.RSSI(i));
+//            Serial.printf("%2d", WiFi.channel(i));
+          if (strcmp(WiFi.SSID(i).c_str(),ssid) == 0) f_ssid = WiFi.channel(i);
+          if (strcmp(WiFi.SSID(i).c_str(),DEVICE_NAME) == 0) f_mesh = WiFi.channel(i);
+        }
+    }
+    WiFi.scanDelete();
+
+    if (f_mesh) { // mesh network found, connect to it's channel
+      sprintf(channel,"%d",f_mesh);
+      Serial.printf("Mesh Network found on Channel %d, connecting to it\n",f_mesh);
+      return 0;
+    }
+    if (f_ssid) {
+      sprintf(channel,"%d",f_ssid);
+      if (f_ssid != atoi(channel)) Serial.println("Mesh default and WLan Rooter on different channels, WLan Rooter channel used to enable reconfiguration");
+      Serial.printf("WLan Rooter found on Channel %d, open Mesh and WLan connection on this channel\n",f_ssid);
+      return 1;     
+    }
+    Serial.printf("No Network found,open Mesh and Access-Point on default Channel %s\n",channel);
+    return 2;
+}
+
+
 // init mesh network and WLAN
 void initWifi() {
   WiFi.persistent(false); // don't write to flash
@@ -172,6 +206,9 @@ void initWifi() {
       EEPROM.end();      
     }         
   }
+
+  scanNetworks(); // to do: continue with rigth network from scan
+  
   //   mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
   mesh.setDebugMsgTypes(0);  // set before init() so that you can see startup messages
 
@@ -212,6 +249,8 @@ void WiFiLoop() {
     else   digitalWrite(LED, 0);  // swith LED off
 
     if ((now - startTime) > 40000) { // wait 40 Sec. or 5 Min. if mesh connection lost
+      WiFiInitAccessPoint();
+/*
       Serial.println("No mesh network found, open access-point");
       //// AP only tbd. Search for WiFi with SCAN on boot, than decide if rooter connection or AP (AP after rooter start not possible!)
       WiFi.softAPConfig(myIP, myIP, IPAddress(255, 255, 255, 0));
@@ -220,6 +259,7 @@ void WiFiLoop() {
       const uint8_t DNS_PORT = 53;
       dnsServer.start(53, "*", myIP);
       startTime = now;
+*/
     }
   }    
 }
@@ -230,7 +270,7 @@ void initServer() {
  
   server.on("/", HTTP_GET, handleRoot); // redirect root access to index or update page
   server.on("/Config.html", HTTP_GET, [](AsyncWebServerRequest *request) { request->send_P(200, "text/html", config_html, processor); }); // config page from flash (works with empty filesystem)
-  server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)     { request->send(200); }, FileUpload); // file upload data transfer
+  server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)     { request->send_P(200, "text/html", config_html, processor); }, FileUpload); // file upload data transfer
   server.on("/delete", HTTP_POST, handleDelete); // file delete formdata
   server.on("/fwupdate", HTTP_POST, handleFWUpdate); // fw update data transfer
   server.on("/credentials", HTTP_POST, handleCredentials); // set WLAN credentials formdata
@@ -239,7 +279,12 @@ void initServer() {
 
   server.serveStatic("/", LittleFS, "/");  //.setCacheControl("max-age=31536000"); // serve files from filesystem (use browser cache)
 
-  server.onNotFound([](AsyncWebServerRequest *request) { request->send(404, "text/plain", "Not found"); });
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    if (LittleFS.exists("/index.html")) {
+      request->redirect("/index.html");
+    } 
+    else request->send(404, "text/plain", "Not found");
+  });
 }
 
 void handleRoot(AsyncWebServerRequest *request) {
@@ -256,9 +301,13 @@ void FileUpload(AsyncWebServerRequest *request, String filename, size_t index, u
     // open the file on first call and store the file handle in the request object
     request->_tempFile = LittleFS.open("/" + filename, "w");
     Serial.println(logmessage);
+    WiFiLoop(); 
+    webSocket.loop();     
   }
 
   if (len) {
+    WiFiLoop(); 
+    webSocket.loop();  
     // stream the incoming chunk to the opened file
     request->_tempFile.write(data, len);
   }
@@ -268,8 +317,6 @@ void FileUpload(AsyncWebServerRequest *request, String filename, size_t index, u
     // close the file handle as the upload is now done
     request->_tempFile.close();
     Serial.println(logmessage);
-    if (LittleFS.exists("/index.html")) request->redirect("/index.html?Config"); // if index file exist go there
-    else request->redirect("Config.html"); // go to upload page
   }
 }
 
@@ -283,6 +330,8 @@ void RootUpload(AsyncWebServerRequest *request, String filename, size_t index, u
   }
 
   if (len) {
+    WiFiLoop(); 
+    webSocket.loop();  
     /* flashing firmware to ESP*/
     if (Update.write(data, len) != len) Update.printError(Serial);
   }

@@ -2,12 +2,14 @@
 #include "DHSWebsocket.h"     // own websocket functions
 #include "tick.h"             // own tick processing functions
 
-#define VERSION 0.07          // current SW-Version
+#define VERSION 0.08          // current SW-Version
 // 0.05->0.06:  LED blink duration during WLan rooter search increased (+delay(10);)
 //              Acces-Point channel = mesh channel
 // 0.06->0.07:  autoreconnect(true) added to WiFi connection
 //              WiFi Rooter search 40Sec.
 //              WiFi.mode(WIFI_AP); WiFi.softAPConfig(myIP, myIP, IPAddress(255, 255, 255, 0)); for accespoint removed (disturbs mesh connection)
+// 0.07->0.08   Added WiFi Scan function, changed device name from dbserver to deafblind (same as mesh/access point name)
+
 
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -33,9 +35,9 @@ void setup() {
   digitalWrite(LED, 1);  // swith LED on during initialization
   Serial.begin(115200);  // init serial port
   delay(1000);  // wait for usb-port to initialize
-  digitalWrite(LED, 0);  // swith LED on during initialization
+  digitalWrite(LED, 0);  // swith LED off
   delay(1000);  // wait for usb-port to initialize
-  digitalWrite(LED, 1);  // swith LED on during initialization
+  digitalWrite(LED, 1);  // swith LED on
   delay(1000);  // wait for usb-port to initialize
 
   initWifi();       // start mesh network

@@ -12,7 +12,7 @@
 #define DHSWIFI_CHANNEL "1"
 
 // mesh network data
-#define DEVICE_NAME "dbserver"  // own device for WLan or Access-Point
+#define DEVICE_NAME "deafblind"  // own device for WLan or Access-Point
 #define MESH_PREFIX "deafblind" // own mesh network name, also used for mesh FW-Update File-Name
 #define MESH_PASSWORD "dnilbfaed" // mesh password
 #define MESH_PORT 5555
