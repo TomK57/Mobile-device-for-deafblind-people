@@ -9,7 +9,7 @@
 // fallback WLAN credentials if not stored in EEPROM
 #define DHSWIFI_SSID "FRITZ!Box 7530 PU"
 #define DHSWIFI_PASSWORD "5EEA7B7DC"
-#define DHSWIFI_CHANNEL "1"
+#define DHSWIFI_CHANNEL "11"
 
 // mesh network data
 #define DEVICE_NAME "deafblind"  // own device for WLan or Access-Point
@@ -36,7 +36,7 @@ const char config_html[] PROGMEM = R"rawliteral(
   <h4><p>%FILELIST%</p></h4>
 </div><div>
   <p><h3>File Upload</h3></p>
-  <form method="POST" action="/upload" enctype="multipart/form-data"><input type="file" name="data" multiple /><input type="submit" name="upload" value="Upload" title="Upload File"></form>
+  <form method="POST" action="/Config.html" enctype="multipart/form-data"><input type="file" name="data" multiple><input type="submit" name="upload" value="Upload" title="Upload File"></form>
   <p><h3>File Delete</h3></p>
   <form method="POST" action="/delete" enctype="multipart/form-data"><input type="number" name="number" min="-1" /><input type="submit" name="delete" value="Delete" title="Delete File"></form>
 </div><div>

@@ -186,12 +186,8 @@ uint8_t scanNetworks() {
 void initWifi() {
   WiFi.persistent(false); // don't write to flash
   
-  if (!LittleFS.begin()) {
-    Serial.println(F("File-System Error, try formating "));
-    if (LittleFS.format()) {
-      Serial.print(F(" Reinitializing file system "));
-      if (!LittleFS.begin()) Serial.println(F("Error "));
-    } else Serial.println(F("Error"));
+  if (!LittleFS.begin(true)) { // mount LittleFS, reformate if not mountable
+    Serial.println(F("File-System Error!"));
   }
 
   if (!EEPROM.begin(256)) {// size in uint8_t
@@ -208,13 +204,12 @@ void initWifi() {
   }
 
   scanNetworks(); // to do: continue with rigth network from scan
-  
-  //   mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
-  mesh.setDebugMsgTypes(0);  // set before init() so that you can see startup messages
+ 
+//  mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
+//  mesh.setDebugMsgTypes(CONNECTION);  // set before init() so that you can see startup messages
 
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
-  mesh.initOTAReceive(MESH_PREFIX);
   mesh.onDroppedConnection(&onDroppedConnectionCallback);
   mesh.onChangedConnections(&onChangedConnectionsCallback);
   mesh.setContainsRoot(true);
@@ -270,7 +265,7 @@ void initServer() {
  
   server.on("/", HTTP_GET, handleRoot); // redirect root access to index or update page
   server.on("/Config.html", HTTP_GET, [](AsyncWebServerRequest *request) { request->send_P(200, "text/html", config_html, processor); }); // config page from flash (works with empty filesystem)
-  server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)     { request->send_P(200, "text/html", config_html, processor); }, FileUpload); // file upload data transfer
+  server.on("/Config.html", HTTP_POST, [](AsyncWebServerRequest *request){ request->send_P(200, "text/html", config_html, processor); }, FileUpload); // file upload data transfer
   server.on("/delete", HTTP_POST, handleDelete); // file delete formdata
   server.on("/fwupdate", HTTP_POST, handleFWUpdate); // fw update data transfer
   server.on("/credentials", HTTP_POST, handleCredentials); // set WLAN credentials formdata
