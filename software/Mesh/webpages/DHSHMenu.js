@@ -17,12 +17,12 @@ class DHSHMenu { // DHS Hamburger Menu class for dynamic page loading
   DHSLoad(html) { 
     var xhttp = new XMLHttpRequest(); // load page with HTTP request
     var pc = this;
-		if (this.DHSCurrentPage == html) return; // already on page, do nothing
 
 	  // close Hamburger menu
     var myMenu = document.querySelector("#DHSmenu-toggle");
     myMenu.checked = false;
-		
+
+		if (this.DHSCurrentPage == html) return; // already on page, do nothing
 		if (this.DHSPageChange() === false) return; // if change not allowed, stay on page
 		
     xhttp.onreadystatechange = function() {
