@@ -445,7 +445,6 @@ void tickC::sendWorld(String c, uint8_t send) {
   if ((ConnectType != 0) && (send & 4)) {
     String x = "mesh " + c;
     webSocket.broadcastTXT(x);
-    webSocket.loop();  // process webSocket messages
   }
   Serial.print(c);  // output to serial
   display(c);
@@ -461,7 +460,6 @@ void tickC::sendWorld(char c, uint8_t send) {
   if ((ConnectType != 0) && (send & 4)) {
     s = "mesh " + s;
     webSocket.broadcastTXT(s);
-    webSocket.loop();  // process webSocket messages
   }
 
   if (send & 1) setCharacter(c);  // output char to tick device

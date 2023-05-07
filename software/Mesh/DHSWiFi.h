@@ -6,6 +6,8 @@
 
 //----------------------------to be changed for each project -------------------------------------------
 
+// #define MESHDEBUG // uncomment for debuging mesh activity
+
 // fallback WLAN credentials if not stored in EEPROM
 #define DHSWIFI_SSID "FRITZ!Box 7530 PU"
 #define DHSWIFI_PASSWORD "5EEA7B7DC"
@@ -14,8 +16,11 @@
 // mesh network data
 #define DEVICE_NAME "deafblind"  // own device for WLan or Access-Point
 #define MESH_PREFIX "deafblind" // own mesh network name, also used for mesh FW-Update File-Name
-#define MESH_PASSWORD "dnilbfaed" // mesh password
+#define MESH_PASSWORD "" //"dnilbfaed" // mesh password
 #define MESH_PORT 5555
+
+#define MESHSEARCHTIME 30    // time in seconds to search for available mesh partners before switch to WLAN/AP
+#define WLANSEARCHTIME 60    // time in seconds to search for available WLAN network before switch to AP
 
 // onboard LED port
 #define LED 15 // 15 for ESP32S2 2 for ESP32

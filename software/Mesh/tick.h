@@ -16,9 +16,9 @@
 class tickC {
   private:
     uint8_t previousinput;
-    char tickChar[CHARSETNUM][32]={{' ','a','e','n','i','d','t',227 /*ä*/,'o','k','m','f','l','g',246 /*ö*/,'r','u','y','b','p','z','w','q','j','s',CHARSETCHAR,'x','v',COMMANDCHAR,'c','h',0},
-                                   {' ','1','2','3','4','5','6',      '7','8','9','0','+','-',':'      ,'=','&','/','(',')','<','>',',','.','?','{',CHARSETCHAR,'}','$',COMMANDCHAR,'@','%',0},
-                                   {' ','A','E','N','I','D','T',196 /*Ä*/,'O','K','M','F','L','G',214 /*Ö*/,'R','U','Y','B','P','Z','W','Q','J','S',CHARSETCHAR,'X','V',COMMANDCHAR,'C','H',0}};
+    char tickChar[CHARSETNUM][32]={{' ','a','e','n','i','d','t','-' /*ä*/,'o','k','m','f','l','g','+'/*ö*/,'r','u','y','b','p','z','w','q','j','s',CHARSETCHAR,'x','v',COMMANDCHAR,'c','h',0},
+                                   {' ','1','2','3','4','5','6','7','8','9','0','+','-',':','=','&','/','(',')','<','>',',','.','?','{',CHARSETCHAR,'}','$',COMMANDCHAR,'@','%',0},
+                                   {' ','A','E','N','I','D','T','-' /*Ä*/,'O','K','M','F','L','G','+'/*Ö*/,'R','U','Y','B','P','Z','W','Q','J','S',CHARSETCHAR,'X','V',COMMANDCHAR,'C','H',0}};
     
     uint8_t getIOs();
     uint8_t getTouch();
