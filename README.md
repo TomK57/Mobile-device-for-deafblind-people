@@ -5,6 +5,8 @@ The biggest problem for deafblind people is social isolation.
 Ofcourse they can read books printed in Braille or write a letter using a Braille keyboard, but this is not the same as talking with somebody.
 ## The aim of the project
 is to provide a technical solution which allows deafblind people to talk with somebody as similar to a normal talk as possible. 
+## The 5 bit code
+![](assets/4-ABC FIPS für Sehende.xlsx) 
 ## System requirements
 The system shall allow for full duplex communication  
 The system shall use the haptic capabilities of the human fingers  
